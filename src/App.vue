@@ -136,6 +136,10 @@ export default {
         console.log('upNext called', data);
         this.nextSongData = data;
       })
+      EventBus.on('updateInfo', (info) => {
+        this.currentSongData = info[0];
+        this.nextSongData = info[1];
+      })
       EventBus.on('clearSearch', () => {
         this.songQuery = null;
       })
@@ -199,7 +203,7 @@ body{
 }
 
 .details>p:nth-child(1) {
-  font-size: 300%;
+  font-size: 200%;
 }
 
 @media (max-width: 600px) {

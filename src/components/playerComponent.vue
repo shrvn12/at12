@@ -70,25 +70,18 @@ export default {
     name: "PlayerComponent",
     data: () => {
         return {
-            audio: new Audio(),
             currentTime: 0,
             isPlaying: false,
             isPlayingIndex: 0,
             playerThumb: 0,
             volThumb: 0,
             mute: false,
-            currentVolume: 1,
             volume: 1,
             persistVolHint: false,
-            shuffuleActive: false,
-            repeat: false,
             duration: 0,
             queue: [],
-            loadedData: {},
-            audioDetails: {},
             videoId: '',
             playBackTimer: null,
-            isDragging: false
         }
     },
     methods: {
@@ -100,13 +93,13 @@ export default {
             // this.isPlaying = !this.isPlaying
         },
 
-        async loadInfo(id){
+        async loadInfo(id, index){
             if (!id) {
                 return;
             }
             return fetch(`https://api-dqfspola6q-uc.a.run.app/music/getInfo?id=${id}`).then(async (res) => {
                 res = await res.json();
-                this.loadedData[id] = res;
+                this.queue[index].stats = res.stats;
                 console.log(res);
                 return res;
             })
@@ -121,15 +114,14 @@ export default {
          
             this.isPlaying = true;
 
-            !this.loadedData[data.id]? this.loadInfo(data.id).then(() => this.loadedData[data.id]? EventBus.emit('changeData', this.loadedData[data.id]): null): EventBus.emit('changeData', this.loadedData[data.id]);
-
-            if (!this.loadedData[this.queue[this.isPlayingIndex+1]?.id]) {
-                this.loadInfo(this.queue[this.isPlayingIndex+1]?.id).then(() => this.loadedData[this.queue[this.isPlayingIndex+1]?.id] ? EventBus.emit('upNext', this.loadedData[this.queue[this.isPlayingIndex+1]?.id]): null);
+            if (!this.queue[this.isPlayingIndex]?.stats) {
+                await this.loadInfo(this.queue[this.isPlayingIndex]?.id, this.isPlayingIndex);
+                EventBus.emit('updateInfo', [this.queue[this.isPlayingIndex], this.queue[this.isPlayingIndex+1]]);
             }
 
         },
         toggleMute() {
-            if (!this.player) return;
+            if (!this.player || !this.duration) return;
             if (this.mute) {
                 this.player.unMute();
                 this.player.setVolume(this.volume * 100);
@@ -168,17 +160,7 @@ export default {
                 this.player.setVolume(newVolume * 100);
             }
         },
-        onSliderDragStart() {
-            this.isDragging = true;
-        },
-        onSliderDragEnd() {
-            this.player.seekTo(this.sliderValue, true); // Seek to the slider's value when dragging stops
-            this.isDragging = false;
-        },
         seek() {
-            if (this.isDragging) {
-                return;
-            }
             console.log('seeked', this.currentTime);
             this.player.seekTo(this.currentTime, true);
         },
@@ -186,6 +168,23 @@ export default {
             this.isPlayingIndex++;
             this.play(this.queue[this.isPlayingIndex]);
             EventBus.emit('clearSearch');
+            if (this.queue.length - this.isPlayingIndex < 4) {
+                const lastTrackId = this.queue[this.queue.length-1].id;
+                if (!lastTrackId) {
+                    return;
+                }
+                fetch(`https://api-dqfspola6q-uc.a.run.app/music/getQueue?videoId=${lastTrackId}`).then(
+                    async (res) => {
+                        res = await res.json();
+                        if (res.length) {
+                            this.queue = [...this.queue, ...res];
+                        }
+                    }
+                )
+                .catch((err) => {
+                    console.log(err);
+                });
+            }
         },
         playPrev() {
             this.isPlayingIndex--;
@@ -263,19 +262,6 @@ export default {
             this.queue = queue;
             this.isPlayingIndex = 0;
             this.play(queue[0]);
-        })
-        this.audio.addEventListener('timeupdate', () => {
-            if (this.playerThumb) return;
-            this.currentTime = Math.floor(this.audio.currentTime);
-        })
-        this.audio.addEventListener('ended', () => {
-            this.isPlayingIndex += 1;
-            if (!this.queue[this.isPlayingIndex]) {
-                EventBus.emit('getQueueAgain', this.queue[this.queue.length-1]);
-            }
-            else {
-                this.play(this.queue[this.isPlayingIndex]);
-            }
         })
         if (!window.YT) {
             const script = document.createElement("script");
