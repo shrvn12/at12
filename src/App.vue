@@ -81,7 +81,7 @@ export default {
         }
         this.searchQuery = query;
         this.loading = true;
-        fetch(`https://at12-backend.vercel.app/search?query=${query || ""}`)
+        fetch(`https://api-dqfspola6q-uc.a.run.app/music/search?query=${query || ""}`)
             .then(async (res) => {
                 res = await res.json();
                 // console.log(res);
@@ -100,7 +100,7 @@ export default {
       const autocomplete = this.$refs.autocomplete;
       autocomplete.blur();
       this.isLoading = true;
-      fetch(`https://at12-backend.vercel.app/getQueue?query=${query}`).then(
+      fetch(`https://api-dqfspola6q-uc.a.run.app/music/getQueue?query=${query}`).then(
         async(res) => {
           this.isLoading = false;
           res = await res.json();

@@ -104,17 +104,11 @@ export default {
             if (!id) {
                 return;
             }
-            return fetch(`https://www.googleapis.com/youtube/v3/videos?part=snippet,statistics&id=${id}&key=AIzaSyA2d0ZBNt_0IGPBgbRYDlBAWAO77a0Adkk`).then(async (res) => {
+            return fetch(`https://api-dqfspola6q-uc.a.run.app/music/getInfo?id=${id}`).then(async (res) => {
                 res = await res.json();
-                const response = {
-                    id,
-                    title: res.items[0]?.snippet?.title,
-                    stats: res.items[0]?.statistics,
-                    artist: res.items[0]?.snippet?.channelTitle
-                }
-                this.loadedData[id] = response;
-                console.log('info loaded');
-                return response;
+                this.loadedData[id] = res;
+                console.log(res);
+                return res;
             })
         },
 
@@ -132,34 +126,6 @@ export default {
             if (!this.loadedData[this.queue[this.isPlayingIndex+1]?.id]) {
                 this.loadInfo(this.queue[this.isPlayingIndex+1]?.id).then(() => this.loadedData[this.queue[this.isPlayingIndex+1]?.id] ? EventBus.emit('upNext', this.loadedData[this.queue[this.isPlayingIndex+1]?.id]): null);
             }
-
-            /*
-            // if (this.loadedData[data.id]){
-            //     const res = this.loadedData[data.id]
-            //     this.audio.src = res.formats[0].url;
-            //     this.audio.play();
-            //     this.isPlaying = true;
-            //     EventBus.emit('changeData', res.videoDetails);
-            //     this.loadData(this.queue[this.isPlayingIndex+1]?.id);
-            //     return;
-            // }
-            // EventBus.emit('loading_1');
-            // fetch(`http://localhost:4500/video?query=${data.id}`).then(
-            //     async (res) => {
-            //         res = await res.json();
-            //         this.loadedData[data.id] = res;
-            //         this.audio.src = res.formats[0].url;
-            //         this.audio.play();
-            //         this.isPlaying = true;
-            //         EventBus.emit('changeData', res.videoDetails);
-            //         this.loadData(this.queue[this.isPlayingIndex+1]?.id);
-            //         EventBus.emit('loading_0');
-            //     }
-            // ).catch(err => {
-            //     console.log(err)
-            //     EventBus.emit('loading_0');
-            // });
-            */
 
         },
         toggleMute() {
