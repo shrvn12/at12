@@ -1,5 +1,14 @@
 <template>
-  <h1 id="heading">@12</h1>
+  <h1 id="heading">
+    <span style="width: 100%;">
+        <svg class="head" style="width: 100%;">
+          <text class="head" x="50%" y="70%"  text-anchor="middle"  >
+            @12
+          </text>
+        </svg>
+    </span>
+  </h1>
+
   <form autocomplete="off">
       <v-autocomplete
       name="searchComponent"
@@ -188,11 +197,6 @@ body{
   color: white;
   width: 50%;
 }
-#heading{
-  color: white;
-  font-size: 1000%;
-  margin-bottom: 3%;
-}
 .details>p {
   text-align: center;
   max-width: 50%;
@@ -208,9 +212,12 @@ body{
 
 @media (max-width: 600px) {
   #heading{
-    font-size: 500%;
-    margin-bottom: 10%;
+    margin-bottom: 2%;
   }
+   .head{
+    font-size: 70px;
+    font-weight: normal;
+   }
   .input{
     width: 90%;
   }
@@ -227,4 +234,30 @@ body{
     font-size: 150%;
   }
 }
+
+.head{
+  height: 20vh;
+  stroke: #fc2c55;
+  font-size: 150px;
+  font-weight: 700;
+  stroke-width: 3;
+  animation: textAnimate 5s infinite alternate;
+}
+
+@keyframes textAnimate {
+  0% {
+    stroke-dasharray: 0 50%;
+    stroke-dashoffset:  20%;
+    fill: #ffffff
+
+  }
+  
+  100% {
+    stroke-dasharray: 50% 0;
+    stroke-dashoffstet: -20%;
+    fill: #000
+  }
+  
+}
+
 </style>
