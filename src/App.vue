@@ -102,8 +102,6 @@ export default {
         fetch(`https://api-dqfspola6q-uc.a.run.app/music/search?query=${query || ""}`)
             .then(async (res) => {
                 res = await res.json();
-                // console.log(res);
-                // res = res.map((el) => `${el.name}`);
                 if (res.length) {
                     this.searchSuggestions = res;
                 }
@@ -122,7 +120,6 @@ export default {
         async(res) => {
           this.isLoading = false;
           res = await res.json();
-          // console.log(res);
           EventBus.emit('play', res);
         }
       )
@@ -151,7 +148,6 @@ export default {
         this.nextSongData = {};
       })
       EventBus.on('upNext', (data) => {
-        console.log('upNext called', data);
         this.nextSongData = data;
       })
       EventBus.on('updateInfo', (info) => {
@@ -263,7 +259,7 @@ body{
     width: 90%;
   }
   .details{
-    margin-top: 20%;
+    margin-top: 5%;
   }
   .details>p {
     text-align: center;

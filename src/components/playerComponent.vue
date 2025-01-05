@@ -100,7 +100,6 @@ export default {
             return fetch(`https://api-dqfspola6q-uc.a.run.app/music/getInfo?id=${id}`).then(async (res) => {
                 res = await res.json();
                 this.queue[index].stats = res.stats;
-                console.log(res);
                 return res;
             })
         },
@@ -135,10 +134,10 @@ export default {
 
         handleKeyDown(event) {
             if (event.key === 'ArrowRight') {
-                this.currentTime += 5; // Seek forward by 5 seconds
+                this.currentTime = Math.min(this.currentTime+5, this.duration); // Seek forward by 5 seconds
                 this.seek(); // Call the seek function
             } else if (event.key === 'ArrowLeft') {
-                this.currentTime -= 5; // Seek backward by 5 seconds
+                this.currentTime = Math.max(this.currentTime-5, 0); // Seek backward by 5 seconds
                 this.seek(); // Call the seek function
             } else if (event.key === 'ArrowUp' && this.volume < 1) {
                 // this.volume += 0.01;
@@ -163,7 +162,6 @@ export default {
             }
         },
         seek() {
-            console.log('seeked', this.currentTime);
             this.player.seekTo(this.currentTime, true);
         },
         playNext() {
@@ -213,7 +211,6 @@ export default {
         onPlayerStateChange(event) {
             this.duration = this.player.getDuration();
             if (event.data === YT.PlayerState.PLAYING) {
-                console.log(this.player.getVideoData());
                 EventBus.emit('loading_0');
                 if (!this.isPlaying) {
                     this.isPlaying = true;
@@ -257,7 +254,6 @@ export default {
     mounted() {
         document.addEventListener('keydown', this.handleKeyDown);
         EventBus.on('play', (queue) => {
-            console.log('working', queue);
             this.queue = queue;
             this.isPlayingIndex = 0;
             this.play(queue[0]);
@@ -297,9 +293,10 @@ export default {
     width: 100%;
     /* border: 1px solid #fff; */
     margin: auto;
-    bottom: 15px;
+    bottom: 0px;
     left: 0;
     right: 0;
+    background-color: #000;
 }
 
 #cont>div:nth-child(1),
