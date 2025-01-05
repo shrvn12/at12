@@ -114,7 +114,10 @@ export default {
          
 
             if (!this.queue[this.isPlayingIndex]?.stats) {
-                await this.loadInfo(this.queue[this.isPlayingIndex]?.id, this.isPlayingIndex);
+                this.loadInfo(this.queue[this.isPlayingIndex]?.id, this.isPlayingIndex).then(() => {
+                    EventBus.emit('updateInfo', [this.queue[this.isPlayingIndex], this.queue[this.isPlayingIndex+1]]);
+                });
+            } else {
                 EventBus.emit('updateInfo', [this.queue[this.isPlayingIndex], this.queue[this.isPlayingIndex+1]]);
             }
 

@@ -41,14 +41,16 @@
       @update:modelValue="searchSong"
       ></v-autocomplete>
   </form>
-  
+  <div class="img-cont" style="">
+    <img class="thumbnail" v-if="currentSongData && currentSongData.thumbnails" :src="currentSongData?.thumbnails?.high?.url || 'https://images.unsplash.com/photo-1494232410401-ad00d5433cfa?q=80&w=1770&auto=format&fit=crop&ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D'">
+  </div>
   <div v-if="Object.keys(this.currentSongData).length" class="details">
-    <p style="text-align: center; max-width: 65%; text-overflow: ellipsis; margin-top: 3%; color: white; font-weight: bold;">{{currentSongData.title}}</p>
+    <p style="text-align: center; max-width: 65%; text-overflow: ellipsis; color: white; font-weight: bold;">{{currentSongData.title}}</p>
     <p style=" ">{{ currentSongData.artist }}</p>
     <p style=" ">Views: {{ formatNumber(+currentSongData.stats.viewCount) }}</p>
     <p style=" "><v-icon size="small">mdi-heart</v-icon> {{ formatNumber(+currentSongData.stats.likeCount) }}</p>
-    <p v-if="Object.keys(this.nextSongData).length" style=" margin-top: 3%; color: white; font-size: 120%;">Up Next:</p>
-    <p v-if="Object.keys(this.nextSongData).length" style=" font-size: 150%;">{{ this.nextSongData.title }}</p>
+    <p v-if="Object.keys(this.nextSongData).length" style=" margin-top: 1%; color: white; font-size: 120%;">Up Next:</p>
+    <p v-if="Object.keys(this.nextSongData).length" style="">{{ this.nextSongData.title }}</p>
   </div>
   
   <player-component></player-component>
@@ -218,6 +220,26 @@ body{
 
 .details>p:nth-child(1) {
   font-size: 200%;
+}
+
+.img-cont {
+  height: 200px;
+  margin: auto;
+  width: 200px;
+  overflow: hidden;
+  position: relative;
+  border-radius: 10px;
+  margin-top: 2%;
+}
+
+.thumbnail{
+  position: absolute; /* Position the image absolutely */
+  top: 50%; /* Align the image to the vertical center */
+  left: 50%; /* Align the image to the horizontal center */
+  transform: translate(-50%, -50%); /* Center the image properly */
+  height: 135%; /* Set the height to fill the div */
+  width: 100%; /* Set the width to fill the div */
+  object-fit: cover;
 }
 
 @media (max-width: 600px) {
