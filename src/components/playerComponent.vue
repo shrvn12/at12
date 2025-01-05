@@ -50,7 +50,7 @@
                 </v-btn>
                 <v-slider ref="volumeControl" style="margin: 0px !important; height:35px;" v-model="volume" :max="1"
                     step="0.01" class="ml-2" track-size="2" :thumb-size="volThumb" track-fill-color="#fff" color="#fc2c55"
-                    track-color="#ffff" :hint="`Vol ${Math.floor(volume*100)}`" :persistent-hint="persistVolHint"
+                    track-color="#ffff"
                     @update:model-value="adjustVolume" @mouseover="() => { volThumb = 12 }"
                     @mouseleave="() => { volThumb = 0 }"></v-slider>
             </div>
@@ -82,6 +82,8 @@ export default {
             queue: [],
             videoId: '',
             playBackTimer: null,
+            lastKeyTime: 0,  // Last key press timestamp
+            keyDelay: 500
         }
     },
     methods: {
@@ -100,6 +102,7 @@ export default {
             return fetch(`https://api-dqfspola6q-uc.a.run.app/music/getInfo?id=${id}`).then(async (res) => {
                 res = await res.json();
                 this.queue[index].stats = res.stats;
+                this.queue[index].artist = res.artist;
                 return res;
             })
         },
@@ -133,24 +136,35 @@ export default {
         },
 
         handleKeyDown(event) {
-            if (event.key === 'ArrowRight') {
-                this.currentTime = Math.min(this.currentTime+5, this.duration); // Seek forward by 5 seconds
+            if (event.key === 'ArrowRight' && !event.ctrlKey) {
+                this.currentTime = Math.min(this.currentTime + 5, this.duration); // Seek forward by 5 seconds
                 this.seek(); // Call the seek function
-            } else if (event.key === 'ArrowLeft') {
-                this.currentTime = Math.max(this.currentTime-5, 0); // Seek backward by 5 seconds
+            } else if (event.key === 'ArrowLeft' && !event.ctrlKey) {
+                this.currentTime = Math.max(this.currentTime - 5, 0); // Seek backward by 5 seconds
                 this.seek(); // Call the seek function
-            } else if (event.key === 'ArrowUp' && this.volume < 1) {
-                // this.volume += 0.01;
-                this.volume = Math.min(this.volume + 0.01, 1);
-            } else if (event.key === 'ArrowDown' && this.volume > 0) {
-                this.volume -= 0.01;
-            } else if (event.key === ' ') {
+            } else if (event.key === 'ArrowUp' && !event.ctrlKey && !event.shiftKey && !event.altKey) {
+                // Only trigger if ArrowUp is pressed without any modifier keys
+                if (this.volume < 1) {
+                    this.volume = Math.min(this.volume + 0.01, 1); // Increase volume
+                }
+            } else if (event.key === 'ArrowDown' && !event.ctrlKey && !event.shiftKey && !event.altKey) {
+                // Only trigger if ArrowDown is pressed without any modifier keys
+                if (this.volume > 0) {
+                    this.volume -= 0.01; // Decrease volume
+                }
+            } else if (event.key === ' ' && !event.ctrlKey && !event.shiftKey && !event.altKey) {
                 // Check if the active element is an input or textarea
                 const tagName = event.target.tagName.toLowerCase();
                 const isEditable = event.target.isContentEditable;
                 if (tagName !== 'input' && tagName !== 'textarea' && !isEditable) {
                     this.togglePlayPause();
                 }
+            } else if (event.key == "ArrowLeft" && event.ctrlKey) {
+                this.playPrev();
+            } else if (event.key == "ArrowRight" && event.ctrlKey) {
+                this.playNext();
+            } else if (event.key.toLowerCase() === 'm' && event.ctrlKey) {
+                this.toggleMute();
             }
         },
 
@@ -165,6 +179,11 @@ export default {
             this.player.seekTo(this.currentTime, true);
         },
         playNext() {
+            const currentTime = new Date().getTime(); // Get the current timestamp
+            if (currentTime - this.lastKeyTime < this.keyDelay) {
+                return;
+            }
+            this.lastKeyTime = currentTime;
             this.isPlayingIndex++;
             this.play(this.queue[this.isPlayingIndex]);
             EventBus.emit('clearSearch');
@@ -187,6 +206,11 @@ export default {
             }
         },
         playPrev() {
+            const currentTime = new Date().getTime(); // Get the current timestamp
+            if (currentTime - this.lastKeyTime < this.keyDelay) {
+                return;
+            }
+            this.lastKeyTime = currentTime;
             this.isPlayingIndex--;
             this.play(this.queue[this.isPlayingIndex]);
         },
@@ -267,15 +291,6 @@ export default {
         }
     },
     watch: {
-        volume(val) {
-            this.audio.volume = val;
-            if (val < 10) {
-                this.persistVolHint = true;
-            }
-            else {
-                this.persistVolHint = false;
-            }
-        },
         queue(val) {
             EventBus.emit('queue', val);
         },
@@ -310,12 +325,10 @@ export default {
 
 #cont>div:nth-child(2) {
     width: 60%;
-    /* border: 1px solid yellow; */
 }
 
 .buttons {
-    /* border: 1px solid #ff0000; */
-    width: 40%;
+    width: 25%;
     margin: 0px auto 0px auto;
     display: flex;
     justify-content: space-evenly
@@ -332,7 +345,6 @@ export default {
 
 #cont>div:nth-child(3)>div {
     display: flex;
-    /* border: 1px solid white; */
     align-items: center;
     justify-content: space-evenly;
 }

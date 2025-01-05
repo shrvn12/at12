@@ -41,17 +41,32 @@
       @update:modelValue="searchSong"
       ></v-autocomplete>
   </form>
-  <div class="img-cont" style="">
-    <img class="thumbnail" v-if="currentSongData && currentSongData.thumbnails" :src="currentSongData?.thumbnails?.high?.url || 'https://images.unsplash.com/photo-1494232410401-ad00d5433cfa?q=80&w=1770&auto=format&fit=crop&ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D'">
-  </div>
-  <div v-if="Object.keys(this.currentSongData).length" class="details">
-    <p style="text-align: center; max-width: 65%; text-overflow: ellipsis; color: white; font-weight: bold;">{{currentSongData.title}}</p>
-    <p style=" ">{{ currentSongData.artist }}</p>
-    <p style=" ">Views: {{ formatNumber(+currentSongData.stats.viewCount) }}</p>
-    <p style=" "><v-icon size="small">mdi-heart</v-icon> {{ formatNumber(+currentSongData.stats.likeCount) }}</p>
-    <p v-if="Object.keys(this.nextSongData).length" style=" margin-top: 1%; color: white; font-size: 120%;">Up Next:</p>
-    <p v-if="Object.keys(this.nextSongData).length" style="">{{ this.nextSongData.title }}</p>
-  </div>
+  <transition name="imgFade" mode="out-in">
+    <div :key="currentSongData.id" class="img-cont" style="">
+      <img class="thumbnail" v-if="currentSongData && currentSongData.thumbnails" :src="currentSongData?.thumbnails?.high?.url || 'https://images.unsplash.com/photo-1494232410401-ad00d5433cfa?q=80&w=1770&auto=format&fit=crop&ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D'">
+    </div>
+  </transition>
+  
+  <transition name="fade" mode="out-in">
+    <div :key="currentSongData.id" v-if="currentSongData && Object.keys(currentSongData).length" class="details">
+      <p style="text-align: center; max-width: 65%; text-overflow: ellipsis; color: white; font-weight: bold;">
+        {{ currentSongData.title }}
+      </p>
+      <p v-if="currentSongData.artist">{{ currentSongData.artist }}</p>
+      <p v-if="currentSongData.stats?.viewCount > 0">
+        <v-icon size="small">mdi-heart</v-icon> 
+        {{ formatNumber(+currentSongData.stats?.likeCount) }} &nbsp; 
+        {{ formatNumber(+currentSongData.stats?.viewCount) }} views
+      </p>
+    </div>
+  </transition>
+  <p v-if="Object.keys(nextSongData).length" style="margin-top: 1%; color: white; font-size: 120%;">Up Next:</p>
+  <transition name="fade" mode="out-in">
+    <div :key="currentSongData.id">
+      <p v-if="Object.keys(nextSongData).length" style="text-align: center; max-width: 50%; font-size: 120%; color: grey; margin: auto">{{ nextSongData.title }}</p>
+    </div>
+  </transition>
+  
   
   <player-component></player-component>
 </template>
@@ -83,6 +98,7 @@ export default {
   },
   methods: {
     handleKeydown(event) {
+        if (event.ctrlKey || event.shiftKey || event.altKey) return;
         const autocomplete = this.$refs.autocomplete;
         const key = event.key;
         if (autocomplete && !autocomplete.focused && key.length === 1 && key.match(/[a-z]/i)) {
@@ -211,7 +227,6 @@ body{
   text-overflow: ellipsis;
   font-size: 120%;
   color: grey;
-  margin: auto
 }
 
 .details>p:nth-child(1) {
@@ -305,6 +320,52 @@ body{
     fill: #000
   }
   
+}
+
+.details {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  height: 20vh;
+  margin-top: 1%;
+}
+
+.fade-enter-active,
+.fade-leave-active {
+  transition: opacity 0.25s ease, transform 0.25s ease;
+}
+
+.fade-enter-from{
+  opacity: 0;
+  transform: translateY(5px); /* Enter from below */
+}
+
+.fade-enter-to,
+.fade-leave-from {
+  opacity: 1;
+  transform: translateY(0); /* End at the normal position */
+}
+
+.fade-leave-to{
+  opacity: 0;
+  transform: translateY(-5px); 
+}
+
+.imgFade-enter-active, .imgFade-leave-active{
+  transition: opacity 0.25s ease,
+}
+
+.imgFade-enter-from{
+  opacity: 0;
+}
+
+.imgFade-enter-to, .imgFade-leave-from{
+  opacity: 1;
+}
+
+.imgFade-leave-to{
+  opacity: 0;
 }
 
 </style>
