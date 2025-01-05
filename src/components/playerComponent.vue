@@ -112,7 +112,6 @@ export default {
             this.videoId = data.id;
             !this.player? this.startPlayer(data.id) : this.player.loadVideoById(this.queue[this.isPlayingIndex]?.id)
          
-            this.isPlaying = true;
 
             if (!this.queue[this.isPlayingIndex]?.stats) {
                 await this.loadInfo(this.queue[this.isPlayingIndex]?.id, this.isPlayingIndex);
@@ -205,10 +204,7 @@ export default {
                 this.playBackTimer = null;
             }
             else if (this.player && this.player.getCurrentTime) {
-                if (!this.playerThumb) {
-                    this.currentTime = this.player.getCurrentTime();
-                }
-                console.log('time updated');
+                this.currentTime = this.player.getCurrentTime();
             }
         },
         onPlayerStateChange(event) {
@@ -283,6 +279,9 @@ export default {
         },
         queue(val) {
             EventBus.emit('queue', val);
+        },
+        isPlaying(val) {
+            EventBus.emit('isPlaying', val);
         }
     }
 }

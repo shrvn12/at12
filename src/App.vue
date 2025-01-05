@@ -1,11 +1,17 @@
 <template>
   <h1 id="heading">
     <span style="width: 100%;">
-        <svg class="head" style="width: 100%;">
-          <text class="head" x="50%" y="70%"  text-anchor="middle"  >
-            @12
-          </text>
-        </svg>
+      <svg :class="isPlaying ? 'head' : 'head_s'" style="width: 90%;">
+      <text
+        :class="isPlaying ? 'head' : 'head_s'"
+        style="fill: #ffffff; border: 1px solid white;"
+        x="50%"
+        y="70%"
+        text-anchor="middle"
+      >
+        @12
+      </text>
+    </svg>
     </span>
   </h1>
 
@@ -69,7 +75,8 @@ export default {
       isLoading: false,
       songQuery: null,
       mountIframe: false,
-      queue: []
+      queue: [],
+      isPlaying: false
     }
   },
   methods: {
@@ -160,6 +167,9 @@ export default {
       })
       EventBus.on('queue', (val) => {
         this.queue = val;
+      }),
+      EventBus.on('isPlaying', (val) => {
+        this.isPlaying = val;
       })
   }
 }
@@ -211,12 +221,21 @@ body{
 }
 
 @media (max-width: 600px) {
-  #heading{
-    margin-bottom: 2%;
-  }
+    #heading{
+      margin-bottom: 2%;
+      font-family: 'Courier New', monospace;
+    }
+    svg{
+      width: 100%;
+    }
    .head{
-    font-size: 70px;
-    font-weight: normal;
+    font-size: 10px;
+    font-weight: 100;
+    stroke-width: 1;
+    margin: auto;
+   }
+   .head_s{
+    margin: auto;
    }
   .input{
     width: 90%;
@@ -235,13 +254,23 @@ body{
   }
 }
 
-.head{
+.head {
   height: 20vh;
   stroke: #fc2c55;
   font-size: 150px;
   font-weight: 700;
   stroke-width: 3;
-  animation: textAnimate 5s infinite alternate;
+  animation: textAnimate 7s infinite alternate;
+}
+
+.head_s {
+  height: 20vh;
+  font-size: 150px;
+  stroke: #fc2c55;
+  font-weight: 700;
+  stroke-width: 3;
+  animation: textAnimate 7s infinite alternate;
+  animation-play-state: paused;
 }
 
 @keyframes textAnimate {
