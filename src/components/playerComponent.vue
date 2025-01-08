@@ -56,7 +56,7 @@
             </div>
 
             <div>
-                
+                <v-icon color="#fff" size="large" @click="toggleQueue()">{{ isQueueVisible? 'mdi-list-box' : 'mdi-list-box-outline'}}</v-icon>
             </div>
 
         </div>
@@ -65,11 +65,13 @@
 <script>
   /*global YT*/
 import { EventBus } from '@/eventBus';
+import { useToast } from 'vue-toastification';
 
 export default {
     name: "PlayerComponent",
     data: () => {
         return {
+            toast: useToast(),
             currentTime: 0,
             isPlaying: false,
             isPlayingIndex: 0,
@@ -83,7 +85,8 @@ export default {
             videoId: '',
             playBackTimer: null,
             lastKeyTime: 0,  // Last key press timestamp
-            keyDelay: 500
+            keyDelay: 500,
+            isQueueVisible: false
         }
     },
     methods: {
@@ -104,6 +107,9 @@ export default {
                 this.queue[index].stats = res.stats;
                 this.queue[index].artist = res.artist;
                 return res;
+            }).catch((err) => {
+                console.log(err);
+                this.toast.err('Something went wrong')
             })
         },
 
@@ -118,6 +124,9 @@ export default {
             if (!this.queue[this.isPlayingIndex]?.stats) {
                 this.loadInfo(this.queue[this.isPlayingIndex]?.id, this.isPlayingIndex).then(() => {
                     EventBus.emit('updateInfo', [this.queue[this.isPlayingIndex], this.queue[this.isPlayingIndex+1]]);
+                }).catch((err) => {
+                    console.log(err);
+                    this.toast.err('Something went wrong')
                 });
             } else {
                 EventBus.emit('updateInfo', [this.queue[this.isPlayingIndex], this.queue[this.isPlayingIndex+1]]);
@@ -134,7 +143,10 @@ export default {
             }
             this.mute = !this.mute;
         },
-
+        toggleQueue() {
+            this.isQueueVisible = !this.isQueueVisible;
+            EventBus.emit('toggleQueue', this.isQueueVisible);
+        },
         handleKeyDown(event) {
             if (event.key === 'ArrowRight' && !event.ctrlKey) {
                 this.currentTime = Math.min(this.currentTime + 5, this.duration); // Seek forward by 5 seconds
@@ -188,20 +200,35 @@ export default {
             this.play(this.queue[this.isPlayingIndex]);
             EventBus.emit('clearSearch');
             if (this.queue.length - this.isPlayingIndex < 4) {
+                this.toast.info('Adding more songs to queue');
                 const lastTrackId = this.queue[this.queue.length-1].id;
                 if (!lastTrackId) {
                     return;
                 }
                 fetch(`https://api-dqfspola6q-uc.a.run.app/music/getQueue?videoId=${lastTrackId}`).then(
                     async (res) => {
-                        res = await res.json();
-                        if (res.length) {
-                            this.queue = [...this.queue, ...res];
+                        let data = await res.json();
+                        if (data.length) {
+                            // Check if the first item in the response matches the last item in the queue
+                            if (this.queue.length && data[0].id === this.queue[this.queue.length - 1].id) {
+                                data.shift(); // Remove the first item
+                            }
+
+                            if (data.length) { // Add remaining items if any
+                                if (this.isPlayingIndex >= this.queue.length) {
+                                    this.queue = [...this.queue, ...data];
+                                    this.play(this.queue[this.isPlayingIndex]);
+                                    EventBus.emit('isPlayingIndex', this.isPlayingIndex);
+                                } else {
+                                    this.queue = [...this.queue, ...data];
+                                }
+                            }
                         }
                     }
                 )
                 .catch((err) => {
                     console.log(err);
+                    this.toast.err('Something went wrong')
                 });
             }
         },
@@ -282,6 +309,13 @@ export default {
             this.isPlayingIndex = 0;
             this.play(queue[0]);
         })
+        EventBus.on('playIndex', (index) => {
+            if (this.queue[index]){
+                console.log('eventbus plyerside', index, this.queue[index]);
+                this.isPlayingIndex = index;
+                this.play(this.queue[index]);
+            }
+        })
         if (!window.YT) {
             const script = document.createElement("script");
             script.src = "https://www.youtube.com/iframe_api";
@@ -296,12 +330,18 @@ export default {
         },
         isPlaying(val) {
             EventBus.emit('isPlaying', val);
+        },
+        isPlayingIndex(val) {
+            EventBus.emit('isPlayingIndex', val);
         }
     }
 }
 </script>
 
 <style scoped>
+html{
+  overflow: hidden;
+}
 #cont {
     position: absolute;
     display: flex;
@@ -350,7 +390,7 @@ export default {
 }
 
 #cont>div:nth-child(3)>div:nth-child(1) {
-    width: 30%;
+    width: 20%;
 }
 
 #cont>div:nth-child(3)>div:nth-child(2) {

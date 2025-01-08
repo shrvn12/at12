@@ -1,4 +1,39 @@
 <template>
+<transition name="slide">
+  <div
+  v-if="isQueueVisible"
+    ref="queueContainer"
+    style="position: absolute; width: 20%; height: 100vh; overflow-y: auto; scrollbar-width: none; -ms-overflow-style: none; z-index: 1;">
+    <v-container>
+      <div
+        style="position: relative; height: 100%; transition: transform 0.5s ease;">
+        <v-list dense style="background-color: transparent; margin: 0; padding: 0;">
+          <v-list-item
+            v-for="(song, index) in queue"
+            :key="index"
+            :style="{
+              height: '60px',
+              display: 'flex',
+              alignItems: 'center',
+              'text-align': 'left',
+              'border-bottom': index === isPlayingIndex ? '1px solid #fc2c55' : 'none',
+              color: index === isPlayingIndex ? 'white' : 'grey',
+            }"
+            @click="playSong(index)"
+          >
+            <v-list-item-content>
+              <v-list-item-title>{{ song.title }}</v-list-item-title>
+              <v-list-item-subtitle>{{ song.artist }}</v-list-item-subtitle>
+            </v-list-item-content>
+          </v-list-item>
+        </v-list>
+      </div>
+    </v-container>
+  </div>
+</transition>
+
+
+
   <h1 id="heading">
     <span style="width: 100%;">
       <svg :class="isPlaying ? 'head' : 'head_s'" style="width: 90%;">
@@ -48,8 +83,8 @@
   </transition>
   
   <transition name="fade" mode="out-in">
-    <div :key="currentSongData.id" v-if="currentSongData && Object.keys(currentSongData).length" class="details">
-      <p style="text-align: center; max-width: 65%; text-overflow: ellipsis; color: white; font-weight: bold;">
+    <div :key="currentSongData.id" v-if="typeof currentSongData === 'object' && Object.keys(currentSongData).length" class="details">
+      <p style="text-align: center; width: 100%; color: white; font-weight: bold;">
         {{ currentSongData.title }}
       </p>
       <p v-if="currentSongData.artist">{{ currentSongData.artist }}</p>
@@ -60,10 +95,10 @@
       </p>
     </div>
   </transition>
-  <p v-if="Object.keys(nextSongData).length" style="margin-top: 1%; color: white; font-size: 120%;">Up Next:</p>
+  <p v-if="typeof nextSongData === 'object' && Object.keys(nextSongData).length" style="margin-top: 1%; color: white; font-size: 120%;">Up Next:</p>
   <transition name="fade" mode="out-in">
     <div :key="currentSongData.id">
-      <p v-if="Object.keys(nextSongData).length" style="text-align: center; max-width: 50%; font-size: 120%; color: grey; margin: auto">{{ nextSongData.title }}</p>
+      <p v-if="typeof nextSongData === 'object' &&  Object.keys(nextSongData).length" style="text-align: center; max-width: 50%; font-size: 120%; color: grey; margin: auto">{{ nextSongData.title }}</p>
     </div>
   </transition>
   
@@ -75,6 +110,7 @@
 // import IFrame from './components/IFrame.vue';
 import PlayerComponent from './components/playerComponent.vue';
 import { EventBus } from './eventBus';
+import { useToast } from 'vue-toastification';
 
 export default {
   name: 'App',
@@ -84,6 +120,7 @@ export default {
   },
   data: () => {
     return{
+      toast: useToast(),
       iframe : null,
       searchQuery: null,
       searchSuggestions: [],
@@ -93,10 +130,34 @@ export default {
       songQuery: null,
       mountIframe: false,
       queue: [],
-      isPlaying: false
+      isPlaying: false,
+      isPlayingIndex: 0,
+      isQueueVisible: false
     }
   },
   methods: {
+    scrollToCurrentSong() {
+      const queueContainer = this.$refs.queueContainer;
+
+      if (!queueContainer || this.isPlayingIndex === undefined) return;
+      // Get the current song element
+      const currentSongElement = queueContainer.querySelectorAll(".v-list-item")[this.isPlayingIndex];
+
+      if (!currentSongElement) return;
+
+      // Calculate the scroll position to center the current song
+      const containerHeight = queueContainer.clientHeight;
+      const songOffsetTop = currentSongElement.offsetTop; // Get the top position of the current song relative to the container
+      const songHeight = currentSongElement.offsetHeight || 70; // Fallback to 70px if height is unavailable
+
+      // Center the song in the viewport
+      const scrollPosition = songOffsetTop - containerHeight / 2 + songHeight / 2;
+
+      queueContainer.scrollTo({
+        top: Math.max(scrollPosition, 0), // Prevent negative scroll values
+        behavior: "smooth",
+      });
+    },
     handleKeydown(event) {
         if (event.ctrlKey || event.shiftKey || event.altKey) return;
         const autocomplete = this.$refs.autocomplete;
@@ -105,6 +166,12 @@ export default {
             autocomplete.focus();
             autocomplete.$emit('input', key);
         }
+    },
+    playSong(index){
+      if (typeof index !== "number" || index == this.isPlayingIndex) {
+        return;
+      }
+      EventBus.emit('playIndex', index);
     },
     search: debounce(function (query) {
         if (this.isLoading) {
@@ -126,6 +193,7 @@ export default {
             .catch((err) => {
                 console.log(err);
                 this.isLoading = false;
+                this.toast.error('Something went wrong')
             });
     }, 200),
     searchSong: debounce(function (query) {
@@ -142,6 +210,7 @@ export default {
       .catch((err) => {
         console.log(err);
         this.isLoading = false;
+        this.toast.error('Something went wrong')
       });
     }, 2000),
     formatNumber(num) {
@@ -185,6 +254,14 @@ export default {
       EventBus.on('isPlaying', (val) => {
         this.isPlaying = val;
       })
+      EventBus.on('isPlayingIndex', (val) => {
+        this.isPlayingIndex = val;
+        this.scrollToCurrentSong()
+      })
+      EventBus.on('toggleQueue', (val) => {
+        this.isQueueVisible = val;
+        this.isQueueVisible? setTimeout(() => { this.scrollToCurrentSong() }, 100): null;
+      })
   }
 }
 
@@ -202,6 +279,9 @@ function debounce(func, delay) {
 </script>
 
 <style>
+html{
+  overflow: hidden;
+}
 body{
   overflow: hidden;
   margin: 0px;
@@ -223,7 +303,6 @@ body{
 }
 .details>p {
   text-align: center;
-  max-width: 50%;
   text-overflow: ellipsis;
   font-size: 120%;
   color: grey;
@@ -328,7 +407,9 @@ body{
   flex-direction: column;
   align-items: center;
   height: 20vh;
+  margin: auto;
   margin-top: 1%;
+  width: 50%;
 }
 
 .fade-enter-active,
@@ -366,6 +447,16 @@ body{
 
 .imgFade-leave-to{
   opacity: 0;
+}
+
+.slide-enter-active, .slide-leave-active {
+  transition: transform 0.5s ease;
+}
+.slide-enter-from {
+  transform: translateX(-100%);
+}
+.slide-leave-to{
+  transform: translateX(-100%);
 }
 
 </style>
