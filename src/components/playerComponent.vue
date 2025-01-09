@@ -56,7 +56,7 @@
             </div>
 
             <div>
-                <v-icon color="#fff" size="large" @click="toggleQueue()">{{ isQueueVisible? 'mdi-list-box' : 'mdi-list-box-outline'}}</v-icon>
+                <v-icon title="Queue" color="#fff" size="large" @click="toggleQueue()">{{ isQueueVisible? 'mdi-list-box' : 'mdi-list-box-outline'}}</v-icon>
             </div>
 
         </div>
@@ -86,7 +86,7 @@ export default {
             playBackTimer: null,
             lastKeyTime: 0,  // Last key press timestamp
             keyDelay: 500,
-            isQueueVisible: false
+            isQueueVisible: true
         }
     },
     methods: {
@@ -109,7 +109,7 @@ export default {
                 return res;
             }).catch((err) => {
                 console.log(err);
-                this.toast.err('Something went wrong')
+                this.toast.err('Something went wrong while getting info')
             })
         },
 
@@ -126,7 +126,7 @@ export default {
                     EventBus.emit('updateInfo', [this.queue[this.isPlayingIndex], this.queue[this.isPlayingIndex+1]]);
                 }).catch((err) => {
                     console.log(err);
-                    this.toast.err('Something went wrong')
+                    this.toast.err('Something went wrong while loading info')
                 });
             } else {
                 EventBus.emit('updateInfo', [this.queue[this.isPlayingIndex], this.queue[this.isPlayingIndex+1]]);
@@ -148,35 +148,63 @@ export default {
             EventBus.emit('toggleQueue', this.isQueueVisible);
         },
         handleKeyDown(event) {
-            if (event.key === 'ArrowRight' && !event.ctrlKey) {
-                this.currentTime = Math.min(this.currentTime + 5, this.duration); // Seek forward by 5 seconds
-                this.seek(); // Call the seek function
-            } else if (event.key === 'ArrowLeft' && !event.ctrlKey) {
-                this.currentTime = Math.max(this.currentTime - 5, 0); // Seek backward by 5 seconds
-                this.seek(); // Call the seek function
-            } else if (event.key === 'ArrowUp' && !event.ctrlKey && !event.shiftKey && !event.altKey) {
-                // Only trigger if ArrowUp is pressed without any modifier keys
-                if (this.volume < 1) {
-                    this.volume = Math.min(this.volume + 0.01, 1); // Increase volume
-                }
-            } else if (event.key === 'ArrowDown' && !event.ctrlKey && !event.shiftKey && !event.altKey) {
-                // Only trigger if ArrowDown is pressed without any modifier keys
-                if (this.volume > 0) {
-                    this.volume -= 0.01; // Decrease volume
-                }
-            } else if (event.key === ' ' && !event.ctrlKey && !event.shiftKey && !event.altKey) {
-                // Check if the active element is an input or textarea
-                const tagName = event.target.tagName.toLowerCase();
-                const isEditable = event.target.isContentEditable;
-                if (tagName !== 'input' && tagName !== 'textarea' && !isEditable) {
+            // Check if the active element is a form control like input or textarea
+            const tagName = event.target.tagName.toLowerCase();
+            const isEditable = event.target.isContentEditable;
+            const isInputElement = tagName === 'input' || tagName === 'textarea';
+
+            // If the active element is an input field or is editable, do not handle keydown for controls
+            if (isInputElement || isEditable) return;
+
+            // Space bar triggers play/pause
+            if (event.key === ' ' && !event.ctrlKey && !event.shiftKey && !event.altKey) {
+                const isButtonOrLink = tagName === 'button' || tagName === 'a';
+                if (isButtonOrLink) {
+                    // Apply blur to remove focus from button or link after spacebar press
+                    event.target.blur();
+                    this.togglePlayPause(); // Trigger play/pause
+                    return; // Prevent the default action of button press
+                } else {
+                    // Trigger play/pause if focus is not on button or link
                     this.togglePlayPause();
                 }
-            } else if (event.key == "ArrowLeft" && event.ctrlKey) {
+            }
+
+            // Seek forward by 5 seconds if arrow right is pressed (except when typing in input)
+            if (event.key === 'ArrowRight' && !event.ctrlKey && !isInputElement) {
+                this.currentTime = Math.min(this.currentTime + 5, this.duration);
+                this.seek();
+            }
+            // Seek backward by 5 seconds if arrow left is pressed (except when typing in input)
+            else if (event.key === 'ArrowLeft' && !event.ctrlKey && !isInputElement) {
+                this.currentTime = Math.max(this.currentTime - 5, 0);
+                this.seek();
+            }
+            // Increase volume if arrow up is pressed (except when typing in input)
+            else if (event.key === 'ArrowUp' && !event.ctrlKey && !event.shiftKey && !event.altKey && !isInputElement) {
+                if (this.volume < 1) {
+                    this.volume = Math.min(this.volume + 0.01, 1);
+                }
+            }
+            // Decrease volume if arrow down is pressed (except when typing in input)
+            else if (event.key === 'ArrowDown' && !event.ctrlKey && !event.shiftKey && !event.altKey && !isInputElement) {
+                if (this.volume > 0) {
+                    this.volume -= 0.01;
+                }
+            }
+            // Handle next and previous track controls with ctrl + arrow keys
+            else if (event.key == "ArrowLeft" && event.ctrlKey) {
                 this.playPrev();
             } else if (event.key == "ArrowRight" && event.ctrlKey) {
                 this.playNext();
-            } else if (event.key.toLowerCase() === 'm' && event.ctrlKey) {
+            }
+            // Mute toggle with ctrl + M
+            else if (event.key.toLowerCase() === 'm' && event.ctrlKey) {
                 this.toggleMute();
+            }
+            // Mute toggle with ctrl + Q
+            else if (event.key.toLowerCase() === 'q' && event.ctrlKey) {
+                this.toggleQueue();
             }
         },
 
@@ -228,7 +256,7 @@ export default {
                 )
                 .catch((err) => {
                     console.log(err);
-                    this.toast.err('Something went wrong')
+                    this.toast.err('Something went wrong while adding to queue')
                 });
             }
         },
@@ -315,6 +343,9 @@ export default {
                 this.isPlayingIndex = index;
                 this.play(this.queue[index]);
             }
+        })
+        EventBus.on('deleteFromQueue', (index) => {
+            this.queue.splice(index, 1);
         })
         if (!window.YT) {
             const script = document.createElement("script");

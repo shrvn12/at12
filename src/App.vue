@@ -1,15 +1,19 @@
 <template>
 <transition name="slide">
   <div
-  v-if="isQueueVisible"
+    v-if="isQueueVisible"
     ref="queueContainer"
-    style="position: absolute; width: 20%; height: 100vh; overflow-y: auto; scrollbar-width: none; -ms-overflow-style: none; z-index: 1;">
+    style="position: absolute; width: 20%; height: 100vh; overflow-y: auto; scrollbar-width: none; -ms-overflow-style: none; z-index: 1;"
+  >
     <v-container>
       <div
-        style="position: relative; height: 100%; transition: transform 0.5s ease;">
-        <v-list dense style="background-color: transparent; margin: 0; padding: 0;">
+        style="position: relative; height: 100%; transition: transform 0.5s ease;"
+      >
+        <v-list default style="background-color: transparent; margin: 0; padding: 0;">
           <v-list-item
             v-for="(song, index) in queue"
+            @mouseover="() => {hoveredIndex = index}"
+            @mouseleave="() => {hoveredIndex = null}"
             :key="index"
             :style="{
               height: '60px',
@@ -18,6 +22,7 @@
               'text-align': 'left',
               'border-bottom': index === isPlayingIndex ? '1px solid #fc2c55' : 'none',
               color: index === isPlayingIndex ? 'white' : 'grey',
+              position: 'relative', /* Position delete icon absolutely inside each item */
             }"
             @click="playSong(index)"
           >
@@ -25,6 +30,16 @@
               <v-list-item-title>{{ song.title }}</v-list-item-title>
               <v-list-item-subtitle>{{ song.artist }}</v-list-item-subtitle>
             </v-list-item-content>
+
+              <v-icon
+                v-if="isPlayingIndex < index"
+                v-show="hoveredIndex === index"
+                @click.stop="deleteFromQueue(index)"
+                color="grey"
+                style="width: 30px; height: 30px; position: absolute; right: 7px; top: 50%; transform: translateY(-50%); cursor: pointer; border: 1px solid grey; border-radius: 10px; background-color: #000;"
+              >
+              mdi-delete-outline
+              </v-icon>
           </v-list-item>
         </v-list>
       </div>
@@ -71,7 +86,7 @@
       bg-color="#000000"
       spellcheck="false"
       autocomplete="off"
-      hide-no-data="true"
+      :hide-no-data="true"
       @update:search="search"
       @update:modelValue="searchSong"
       ></v-autocomplete>
@@ -95,10 +110,10 @@
       </p>
     </div>
   </transition>
-  <p v-if="typeof nextSongData === 'object' && Object.keys(nextSongData).length" style="margin-top: 1%; color: white; font-size: 120%;">Up Next:</p>
+  <p v-if="!isQueueVisible && typeof nextSongData === 'object' && Object.keys(nextSongData).length" style="margin-top: 1%; color: white; font-size: 120%;">Up Next:</p>
   <transition name="fade" mode="out-in">
     <div :key="currentSongData.id">
-      <p v-if="typeof nextSongData === 'object' &&  Object.keys(nextSongData).length" style="text-align: center; max-width: 50%; font-size: 120%; color: grey; margin: auto">{{ nextSongData.title }}</p>
+      <p v-if="!isQueueVisible && typeof nextSongData === 'object' &&  Object.keys(nextSongData).length" style="text-align: center; max-width: 50%; font-size: 120%; color: grey; margin: auto">{{ nextSongData.title }}</p>
     </div>
   </transition>
   
@@ -132,7 +147,8 @@ export default {
       queue: [],
       isPlaying: false,
       isPlayingIndex: 0,
-      isQueueVisible: false
+      isQueueVisible: true,
+      hoveredIndex: null
     }
   },
   methods: {
@@ -193,10 +209,11 @@ export default {
             .catch((err) => {
                 console.log(err);
                 this.isLoading = false;
-                this.toast.error('Something went wrong')
+                this.toast.error('Something went wrong while searching')
             });
     }, 200),
     searchSong: debounce(function (query) {
+      if (!query) return
       const autocomplete = this.$refs.autocomplete;
       autocomplete.blur();
       this.isLoading = true;
@@ -210,9 +227,14 @@ export default {
       .catch((err) => {
         console.log(err);
         this.isLoading = false;
-        this.toast.error('Something went wrong')
+        this.toast.error('Something went wrong while getting results')
       });
     }, 2000),
+    deleteFromQueue(index){
+      if (index && index > this.isPlayingIndex) {
+        EventBus.emit('deleteFromQueue', index);
+      }
+    },
     formatNumber(num) {
       if (num >= 1_000_000_000) {
         return (num / 1_000_000_000).toFixed(1).replace(/\.0$/, '') + 'B'; // Billions
@@ -457,6 +479,26 @@ body{
 }
 .slide-leave-to{
   transform: translateX(-100%);
+}
+
+/* Hover functionality for delete icon */
+.v-list-item:hover .delete-icon {
+  visibility: visible;
+}
+
+/* Apply hover behavior for each individual item */
+.v-list-item:hover {
+  cursor: pointer;
+}
+
+.v-list-item {
+  position: relative;
+}
+
+/* Optional: Prevent visibility flashing effect */
+.v-list-item:hover .v-icon {
+  visibility: visible;
+  opacity: 1;
 }
 
 </style>
