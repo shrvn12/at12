@@ -28,7 +28,7 @@
           >
             <v-list-item-content>
               <v-list-item-title>{{ song.title }}</v-list-item-title>
-              <v-list-item-subtitle>{{ song.artist }}</v-list-item-subtitle>
+              <v-list-item-subtitle>{{ song.channel }}</v-list-item-subtitle>
             </v-list-item-content>
 
               <v-icon
@@ -47,7 +47,36 @@
   </div>
 </transition>
 
-
+<transition name="slideRight">
+  <div
+    v-if="isLyricsVisible && queue[isPlayingIndex]?.lyrics"
+    ref="queueContainer"
+    style="position: absolute; right: 0; width: 20%; height: 100vh; overflow-y: auto; scrollbar-width: none; -ms-overflow-style: none;"
+  >
+    <v-container>
+      <div
+        style="position: relative; height: 100%; transition: transform 0.5s ease;"
+      >
+        <v-list dense style="background-color: transparent; margin: 0; padding: 0;">
+          <v-list-item
+            v-for="(line, index) in queue[isPlayingIndex]?.lyrics"
+            :key="index"
+            :style="{
+              display: 'flex',
+              alignItems: 'center',
+              'text-align': 'center',
+              color: 'white',
+            }"
+          >
+            <v-list-item-content>
+              <v-list-item-title>{{ line }}</v-list-item-title>
+            </v-list-item-content>
+          </v-list-item>
+        </v-list>
+      </div>
+    </v-container>
+  </div>
+</transition>
 
   <h1 id="heading">
     <span style="width: 100%;">
@@ -102,7 +131,7 @@
       <p style="text-align: center; width: 100%; color: white; font-weight: bold;">
         {{ currentSongData.title }}
       </p>
-      <p v-if="currentSongData.artist">{{ currentSongData.artist }}</p>
+      <p v-if="currentSongData.artist?.name">{{ currentSongData.artist?.name }}</p>
       <p v-if="currentSongData.stats?.viewCount > 0">
         <v-icon size="small">mdi-heart</v-icon> 
         {{ formatNumber(+currentSongData.stats?.likeCount) }} &nbsp; 
@@ -116,7 +145,6 @@
       <p v-if="!isQueueVisible && typeof nextSongData === 'object' &&  Object.keys(nextSongData).length" style="text-align: center; max-width: 50%; font-size: 120%; color: grey; margin: auto">{{ nextSongData.title }}</p>
     </div>
   </transition>
-  
   
   <player-component></player-component>
 </template>
@@ -147,7 +175,8 @@ export default {
       queue: [],
       isPlaying: false,
       isPlayingIndex: 0,
-      isQueueVisible: true,
+      isQueueVisible: localStorage.getItem('queue') == 'false'? false : true,
+      isLyricsVisible: false,
       hoveredIndex: null
     }
   },
@@ -284,6 +313,9 @@ export default {
         this.isQueueVisible = val;
         this.isQueueVisible? setTimeout(() => { this.scrollToCurrentSong() }, 100): null;
       })
+      EventBus.on('toggleLyrics', (val) => {
+        this.isLyricsVisible = val;
+      })
   }
 }
 
@@ -307,6 +339,8 @@ html{
 body{
   overflow: hidden;
   margin: 0px;
+  -webkit-font-smoothing: antialiased; /* For WebKit-based browsers */
+  -moz-osx-font-smoothing: grayscale;  /* For macOS */
 }
 #app {
   /* font-family: Avenir, Helvetica, Arial, sans-serif; */
@@ -479,6 +513,16 @@ body{
 }
 .slide-leave-to{
   transform: translateX(-100%);
+}
+
+.slideRight-enter-active, .slideRight-leave-active {
+  transition: transform 0.5s ease;
+}
+.slideRight-enter-from {
+  transform: translateX(100%);
+}
+.slideRight-leave-to{
+  transform: translateX(100%);
 }
 
 /* Hover functionality for delete icon */

@@ -59,6 +59,10 @@
                 <v-icon title="Queue" color="#fff" size="large" @click="toggleQueue()">{{ isQueueVisible? 'mdi-list-box' : 'mdi-list-box-outline'}}</v-icon>
             </div>
 
+            <div>
+                 <v-icon :disabled="!queue[isPlayingIndex]?.lyrics" title="Lyrics" color="#fff" size="large" @click="toggleLyrics()">{{ isLyricsVisible? 'mdi-music-box' : 'mdi-music-box-outline'}}</v-icon>
+            </div>
+
         </div>
     </div>
 </template>
@@ -79,14 +83,14 @@ export default {
             volThumb: 0,
             mute: false,
             volume: 1,
-            persistVolHint: false,
             duration: 0,
             queue: [],
             videoId: '',
             playBackTimer: null,
             lastKeyTime: 0,  // Last key press timestamp
             keyDelay: 500,
-            isQueueVisible: true
+            isQueueVisible: localStorage.getItem('queue') == 'false'? false : true,
+            isLyricsVisible: false
         }
     },
     methods: {
@@ -106,6 +110,10 @@ export default {
                 res = await res.json();
                 this.queue[index].stats = res.stats;
                 this.queue[index].artist = res.artist;
+                this.queue[index].lyrics = res.lyrics;
+                if (!res.lyrics) {
+                    this.isLyricsVisible = false;
+                }
                 return res;
             }).catch((err) => {
                 console.log(err);
@@ -137,7 +145,6 @@ export default {
             if (!this.player || !this.duration) return;
             if (this.mute) {
                 this.player.unMute();
-                this.player.setVolume(this.volume * 100);
             } else {
                 this.player.mute();
             }
@@ -145,7 +152,13 @@ export default {
         },
         toggleQueue() {
             this.isQueueVisible = !this.isQueueVisible;
+            localStorage.setItem('queue', this.isQueueVisible);
             EventBus.emit('toggleQueue', this.isQueueVisible);
+        },
+        toggleLyrics() {
+            this.isLyricsVisible = !this.isLyricsVisible;
+            localStorage.setItem('lyrics', this.isQueueVisible);
+            EventBus.emit('toggleLyrics', this.isLyricsVisible);
         },
         handleKeyDown(event) {
             // Check if the active element is a form control like input or textarea
@@ -278,6 +291,14 @@ export default {
         onPlayerReady(){
             this.duration = this.player.getDuration();
             this.player.playVideo();
+            if (localStorage.getItem('mute') == 'true') {
+                this.toggleMute();
+            }
+            if (localStorage.getItem('volume')){
+                if (+localStorage.getItem('volume')>=0) {
+                    this.adjustVolume(+localStorage.getItem('volume'));
+                }
+            }
         },
         updateCurrentTime() {
             if (!this.isPlaying) {
@@ -364,6 +385,12 @@ export default {
         },
         isPlayingIndex(val) {
             EventBus.emit('isPlayingIndex', val);
+        },
+        mute(val) {
+            localStorage.setItem('mute', val);
+        },
+        volume(val) {
+            localStorage.setItem('volume', val);
         }
     }
 }
@@ -388,10 +415,9 @@ html{
 #cont>div:nth-child(1),
 #cont>div:nth-child(3) {
     width: 40%;
-    /* border: 1px solid yellow; */
     display: flex;
     align-items: center;
-    justify-content: space-evenly;
+    justify-content: right;
 }
 
 #cont>div:nth-child(2) {
@@ -410,10 +436,6 @@ html{
     color: #fff
 }
 
-#cont>div:nth-child(3) {
-    justify-content: right;
-}
-
 #cont>div:nth-child(3)>div {
     display: flex;
     align-items: center;
@@ -421,11 +443,16 @@ html{
 }
 
 #cont>div:nth-child(3)>div:nth-child(1) {
-    width: 20%;
+    width: 30%;
+    padding: 2%;
 }
 
 #cont>div:nth-child(3)>div:nth-child(2) {
-    width: 15%;
+    width: 10%;
+}
+
+#cont>div:nth-child(3)>div:nth-child(3) {
+    width: 10%;
 }
 
 @media (max-width: 600px) {
