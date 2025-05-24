@@ -1,96 +1,129 @@
 <template>
-    <div id="cont" :style="{ display: queue.length ? 'flex' : 'none' }">
+    <div id="cont">
         <div>
             <div id="player" style="height: 0px; width: 0px;"></div>
         </div>
+        <div style="border: 0px solid green; width: 100%; height: min-content; margin-top: -5px;">
+            <div style=" z-index: 1;cursor: pointer; border: 0px solid white; position: absolute; width: 100%; margin-top: -1%; height: min-content; display: flex; justify-content: space-between; align-items: center;" @click="() => { $router.push(`/playing/${queue[isPlayingIndex].id}`) }">
+                <transition name="fade" mode="out-in">
+                    <p v-if="this.$route.name !== 'nowPlaying'" class="ellipse">{{ queue.length? queue[isPlayingIndex]?.title : "" }}</p>
+                </transition>
+                    <p style="color: white; font-size: small; margin: 0px; text-align: right; margin-left: auto;">{{`${formatTime(currentTime)} / ${formatTime(duration)}`}}</p>
+                </div>                
 
-        <div>
-            <div class="buttons">
-                <!-- Previous Button -->
-                <v-btn @click="playPrev" icon :ripple="true" title="Previous" base-color="transparent">
-                    <v-icon size="xx-large" color="#fff">mdi-skip-previous</v-icon>
-                </v-btn>
-                <!-- Play/Pause Button -->
-                <v-btn base-color="transparent" icon :title="isPlaying ? 'Pause' : 'Play'" @click="togglePlayPause">
-                    <v-icon :color="'#fff'" size="xx-large">{{ isPlaying ? 'mdi-pause' : 'mdi-play' }}</v-icon>
-                </v-btn>
-                <!-- Next Button -->
-                <v-btn @click="playNext" icon :ripple="true" title="Next" base-color="transparent">
-                    <v-icon size="xx-large" color="#fff">mdi-skip-next</v-icon>
-                </v-btn>
-            </div>
-            <!-- Progress Bar -->
             <v-slider 
-            style="margin:  2px !important;"
-            v-model="currentTime"
-            :max="duration"
-            step="1"
-            class="mt-4"
-            color="#fc2c55"
-            track-color="#fff"
-            :label="`${formatTime(currentTime)} / ${formatTime(duration)}`"
-            :thumb-size=playerThumb
-            :thumb-label="false"
-            track-size="2"
-            persistent-hint
-            @mouseover="() => { playerThumb = 12 }"
-            @mouseleave="() => { playerThumb = 0 }"
-            @update:modelValue="seek"
+                style="margin:  2px !important; height: 22px;"
+                v-model="currentTime"
+                :max="duration"
+                step="1"
+                class="mt-4"
+                color="#fc2c55"
+                track-color="#fff"
+                :thumb-size=playerThumb
+                :thumb-label="false"
+                track-size="2"
+                persistent-hint
+                @mouseover="() => { playerThumb = 12 }"
+                @mouseleave="() => { playerThumb = 0 }"
+                @update:modelValue="seek"
             ></v-slider>
         </div>
+        <div style="border: 0px solid white; display: flex; justify-content: space-between; overflow: hidden; height: 6vh;">
+            <v-btn @click="playPrev" icon :ripple="true" title="Previous" base-color="transparent">
+                    <v-icon size="large" color="#fff">mdi-skip-previous-outline</v-icon>
+            </v-btn>
+            <v-btn base-color="transparent" icon :title="isPlaying ? 'Pause' : 'Play'" @click="togglePlayPause">
+                <v-icon :color="'#fff'" size="large">{{ isPlaying ? 'mdi-pause-box-outline' : 'mdi-play-outline' }}</v-icon>
+            </v-btn>
+            <v-btn @click="playNext" icon :ripple="true" title="Next" base-color="transparent">
+                <v-icon size="large" color="#fff">mdi-skip-next-outline</v-icon>
+            </v-btn>
+            <v-btn icon :ripple="true" title="repeat" base-color="transparent" @click="toggleRepeat">
+                <v-icon v-if="repeat && !repeatOnce" size="default" color="#fff">mdi-repeat</v-icon>
+                <v-icon v-if="repeatOnce && !repeat" size="default" color="#fff">mdi-repeat-once</v-icon>
+                <v-icon v-if="!repeat && !repeatOnce" size="default" color="#fff">mdi-repeat-off</v-icon>
+            </v-btn>
+            <v-btn icon :ripple="!shuffleDisabled" title="shuffle" base-color="transparent" :style="{cursor: shuffleDisabled ? 'not-allowed' : 'pointer'}">
+                <v-icon :disabled="shuffleDisabled" size="default" color="#fff">mdi-shuffle</v-icon>
+            </v-btn>
 
-        <div>
-            <div>
-                <v-btn icon :ripple="true" :title="mute ? 'Unmute' : 'Mute'" base-color="transparent"
-                    @click="toggleMute">
-                    <v-icon v-if="mute" color="#fff" size="large">mdi-volume-off</v-icon>
-                    <v-icon v-else-if="(volume*100) < 30" color="#fff" size="large">mdi-volume-low</v-icon>
-                    <v-icon v-else-if="(volume*100) < 60" color="#fff" size="large">mdi-volume-medium</v-icon>
-                    <v-icon v-else color="#fff" size="large">mdi-volume-high</v-icon>
-                </v-btn>
-                <v-slider ref="volumeControl" style="margin: 0px !important; height:35px;" v-model="volume" :max="1"
-                    step="0.01" class="ml-2" track-size="2" :thumb-size="volThumb" track-fill-color="#fff" color="#fc2c55"
-                    track-color="#ffff"
-                    @update:model-value="adjustVolume" @mouseover="() => { volThumb = 12 }"
-                    @mouseleave="() => { volThumb = 0 }"></v-slider>
+            <div style="border: 0px solid; width: 12%; margin-top: 1vw;">
+                <v-slider
+                ref="volumeSlider"
+                v-model="volume"
+                :max="100"
+                step="1"
+                class="mt-4"
+                color="#fc2c55"
+                track-color="#fff"
+                :thumb-label="false"
+                track-size="2"
+                :thumb-size=10
+                @update:modelValue="handleVolumeChange"
+                ></v-slider>
             </div>
-
-            <div>
-                <v-icon title="Queue" color="#fff" size="large" @click="toggleQueue()">{{ isQueueVisible? 'mdi-list-box' : 'mdi-list-box-outline'}}</v-icon>
-            </div>
-
-            <div>
-                 <v-icon :disabled="!queue[isPlayingIndex]?.lyrics" title="Lyrics" color="#fff" size="large" @click="toggleLyrics()">{{ isLyricsVisible? 'mdi-music-box' : 'mdi-music-box-outline'}}</v-icon>
-            </div>
-
+            
+            <v-btn @click="toggleQueue()" icon :ripple="true" title="repeat" base-color="transparent">
+                    <v-icon size="default" color="#fff">{{queueStore.isQueueVisible? "mdi-list-box" : "mdi-list-box-outline"}}</v-icon>
+            </v-btn>
+            <v-btn icon :ripple="!lyricsDisabled" title="repeat" base-color="transparent" :style="{cursor: shuffleDisabled ? 'not-allowed' : 'pointer'}">
+                    <v-icon @click="toggleLyrics()" :disabled="lyricsDisabled" size="default" color="#fff">{{ lyricsStore.isLyricsVisible? 'mdi-music-box' : 'mdi-music-box-outline'}}</v-icon>
+            </v-btn>
         </div>
     </div>
 </template>
 <script>
   /*global YT*/
+import { useQueueStore } from '../stores/queue';
 import { EventBus } from '@/eventBus';
 import { useToast } from 'vue-toastification';
+import { useLyricsStore} from '../stores/lyrics';
 
 export default {
     name: "PlayerComponent",
+    computed: {
+        queue() {
+            return useQueueStore().queue;
+        },
+        isPlayingIndex(){
+            return useQueueStore().isPlayingIndex;
+        },
+        isQueueVisible(){
+            return useQueueStore().isQueueVisible;
+        },
+        route(){
+            return this.$route.name;
+        },
+    },
+    setup(){
+        const queueStore = useQueueStore();
+        const lyricsStore = useLyricsStore();
+        return { queueStore, lyricsStore };
+    },
     data: () => {
         return {
             toast: useToast(),
             currentTime: 0,
             isPlaying: false,
-            isPlayingIndex: 0,
             playerThumb: 0,
             volThumb: 0,
+            volLabel: false,
             mute: false,
-            volume: 1,
-            duration: 0,
-            queue: [],
+            volume: 100,
+            duration: 100,
             videoId: '',
             playBackTimer: null,
-            lastKeyTime: 0,  // Last key press timestamp
+            lastKeyTime: 0,
             keyDelay: 500,
-            isQueueVisible: localStorage.getItem('queue') == 'false'? false : true,
-            isLyricsVisible: false
+            // isQueueVisible: localStorage.getItem('queue') == 'false'? false : true,
+            isLyricsVisible: false,
+            volumeBar: false,
+            playerLoading: false,
+            repeat: false,
+            repeatOnce: false,
+            shuffleDisabled: true,
+            lyricsDisabled: true,
+            thumbTimeout: null,
         }
     },
     methods: {
@@ -99,179 +132,79 @@ export default {
                 return;
             }
             this.isPlaying ? this.player.pauseVideo() : this.player.playVideo();
-            // this.isPlaying = !this.isPlaying
+            this.isPlaying = !this.isPlaying
+            this.queueStore.isPaused = !this.isPlaying;
+            this.queueStore.isPlaying = this.isPlaying;
         },
-
-        async loadInfo(id, index){
-            if (!id) {
-                return;
+        toggleRepeat() {
+            if (!this.repeat && !this.repeatOnce) {
+                this.repeat = true;
+                this.repeatOnce = false;
+            } else if (this.repeat && !this.repeatOnce) {
+                this.repeat = false;
+                this.repeatOnce = true;
+            } else {
+                this.repeat = false;
+                this.repeatOnce = false;
             }
-            return fetch(`https://api-dqfspola6q-uc.a.run.app/music/getInfo?id=${id}`).then(async (res) => {
-                res = await res.json();
-                this.queue[index].stats = res.stats;
-                this.queue[index].artist = res.artist;
-                this.queue[index].lyrics = res.lyrics;
-                if (!res.lyrics) {
-                    this.isLyricsVisible = false;
-                }
-                return res;
-            }).catch((err) => {
-                console.log(err);
-                this.toast.err('Something went wrong while getting info')
-            })
         },
-
+         toggleQueue() {
+            this.queueStore.isQueueVisible = !this.queueStore.isQueueVisible;
+        },
+        handleVolumeChange(value) {
+            if (this.player) {
+                this.player.setVolume(value);
+            }
+        },
         async play(data) {
             if (!data || !data.id) {
                 return;
             }
             this.videoId = data.id;
-            !this.player? this.startPlayer(data.id) : this.player.loadVideoById(this.queue[this.isPlayingIndex]?.id)
-         
-
-            if (!this.queue[this.isPlayingIndex]?.stats) {
-                this.loadInfo(this.queue[this.isPlayingIndex]?.id, this.isPlayingIndex).then(() => {
-                    EventBus.emit('updateInfo', [this.queue[this.isPlayingIndex], this.queue[this.isPlayingIndex+1]]);
-                }).catch((err) => {
-                    console.log(err);
-                    this.toast.err('Something went wrong while loading info')
-                });
-            } else {
-                EventBus.emit('updateInfo', [this.queue[this.isPlayingIndex], this.queue[this.isPlayingIndex+1]]);
-            }
-
-        },
-        toggleMute() {
-            if (!this.player || !this.duration) return;
-            if (this.mute) {
-                this.player.unMute();
-            } else {
-                this.player.mute();
-            }
-            this.mute = !this.mute;
-        },
-        toggleQueue() {
-            this.isQueueVisible = !this.isQueueVisible;
-            localStorage.setItem('queue', this.isQueueVisible);
-            EventBus.emit('toggleQueue', this.isQueueVisible);
-        },
-        toggleLyrics() {
-            this.isLyricsVisible = !this.isLyricsVisible;
-            localStorage.setItem('lyrics', this.isQueueVisible);
-            EventBus.emit('toggleLyrics', this.isLyricsVisible);
-        },
-        handleKeyDown(event) {
-            // Check if the active element is a form control like input or textarea
-            const tagName = event.target.tagName.toLowerCase();
-            const isEditable = event.target.isContentEditable;
-            const isInputElement = tagName === 'input' || tagName === 'textarea';
-
-            // If the active element is an input field or is editable, do not handle keydown for controls
-            if (isInputElement || isEditable) return;
-
-            // Space bar triggers play/pause
-            if (event.key === ' ' && !event.ctrlKey && !event.shiftKey && !event.altKey) {
-                const isButtonOrLink = tagName === 'button' || tagName === 'a';
-                if (isButtonOrLink) {
-                    // Apply blur to remove focus from button or link after spacebar press
-                    event.target.blur();
-                    this.togglePlayPause(); // Trigger play/pause
-                    return; // Prevent the default action of button press
-                } else {
-                    // Trigger play/pause if focus is not on button or link
-                    this.togglePlayPause();
-                }
-            }
-
-            // Seek forward by 5 seconds if arrow right is pressed (except when typing in input)
-            if (event.key === 'ArrowRight' && !event.ctrlKey && !isInputElement) {
-                this.currentTime = Math.min(this.currentTime + 5, this.duration);
-                this.seek();
-            }
-            // Seek backward by 5 seconds if arrow left is pressed (except when typing in input)
-            else if (event.key === 'ArrowLeft' && !event.ctrlKey && !isInputElement) {
-                this.currentTime = Math.max(this.currentTime - 5, 0);
-                this.seek();
-            }
-            // Increase volume if arrow up is pressed (except when typing in input)
-            else if (event.key === 'ArrowUp' && !event.ctrlKey && !event.shiftKey && !event.altKey && !isInputElement) {
-                if (this.volume < 1) {
-                    this.volume = Math.min(this.volume + 0.01, 1);
-                }
-            }
-            // Decrease volume if arrow down is pressed (except when typing in input)
-            else if (event.key === 'ArrowDown' && !event.ctrlKey && !event.shiftKey && !event.altKey && !isInputElement) {
-                if (this.volume > 0) {
-                    this.volume -= 0.01;
-                }
-            }
-            // Handle next and previous track controls with ctrl + arrow keys
-            else if (event.key == "ArrowLeft" && event.ctrlKey) {
-                this.playPrev();
-            } else if (event.key == "ArrowRight" && event.ctrlKey) {
-                this.playNext();
-            }
-            // Mute toggle with ctrl + M
-            else if (event.key.toLowerCase() === 'm' && event.ctrlKey) {
-                this.toggleMute();
-            }
-            // Mute toggle with ctrl + Q
-            else if (event.key.toLowerCase() === 'q' && event.ctrlKey) {
-                this.toggleQueue();
-            }
-        },
-
-        adjustVolume(newVolume) {
-            if (!this.player) return;
-            this.volume = newVolume;
-            if (!this.mute) {
-                this.player.setVolume(newVolume * 100);
-            }
+            !this.player? this.startPlayer(data.id) : this.player.loadVideoById(data.id);
         },
         seek() {
             this.player.seekTo(this.currentTime, true);
         },
         playNext() {
-            const currentTime = new Date().getTime(); // Get the current timestamp
-            if (currentTime - this.lastKeyTime < this.keyDelay) {
+            if (this.repeat){
+                this.player.seekTo(0, true);
+                this.player.playVideo();
                 return;
             }
-            this.lastKeyTime = currentTime;
-            this.isPlayingIndex++;
-            this.play(this.queue[this.isPlayingIndex]);
-            EventBus.emit('clearSearch');
-            if (this.queue.length - this.isPlayingIndex < 4) {
-                this.toast.info('Adding more songs to queue');
-                const lastTrackId = this.queue[this.queue.length-1].id;
-                if (!lastTrackId) {
+            if (this.repeatOnce){
+                this.player.seekTo(0, true);
+                this.player.playVideo();
+                this.repeatOnce = false;
+                return;
+            }
+                const currentTime = new Date().getTime(); // Get the current timestamp
+                if (currentTime - this.lastKeyTime < this.keyDelay) {
                     return;
                 }
-                fetch(`https://api-dqfspola6q-uc.a.run.app/music/getQueue?videoId=${lastTrackId}`).then(
-                    async (res) => {
-                        let data = await res.json();
-                        if (data.length) {
-                            // Check if the first item in the response matches the last item in the queue
-                            if (this.queue.length && data[0].id === this.queue[this.queue.length - 1].id) {
-                                data.shift(); // Remove the first item
-                            }
-
-                            if (data.length) { // Add remaining items if any
-                                if (this.isPlayingIndex >= this.queue.length) {
-                                    this.queue = [...this.queue, ...data];
-                                    this.play(this.queue[this.isPlayingIndex]);
-                                    EventBus.emit('isPlayingIndex', this.isPlayingIndex);
-                                } else {
-                                    this.queue = [...this.queue, ...data];
+                this.lastKeyTime = currentTime;
+                if ((this.queueStore.isPlayingIndex+1) >= this.queue.length) {
+                    const lastItemId = this.queue[this.queue.length - 1]?.id;
+                    if (lastItemId) {
+                        return this.fetchQueue(lastItemId).then((data) => {
+                            if (data.length) {
+                                this.queueStore.queue = [...this.queueStore.queue, ...data.slice(1)];
+                                this.queueStore.isPlayingIndex++;
+                                this.play(this.queue[this.queueStore.isPlayingIndex]);
+                                if (this.$router.currentRoute?._value?.name == 'nowPlaying') {
+                                    this.$router.replace(`/playing/${this.queue[this.queueStore.isPlayingIndex].id}`);
                                 }
                             }
-                        }
+                        });
                     }
-                )
-                .catch((err) => {
-                    console.log(err);
-                    this.toast.err('Something went wrong while adding to queue')
-                });
-            }
+                    this.queueStore.isPlayingIndex = 0; // Loop back to the first track
+                } else{
+                    this.queueStore.isPlayingIndex++;
+                    if (this.$router.currentRoute?._value?.name == 'nowPlaying') {
+                        this.$router.replace(`/playing/${this.queue[this.queueStore.isPlayingIndex].id}`);
+                    }
+                    this.play(this.queue[this.queueStore.isPlayingIndex]);
+                }
         },
         playPrev() {
             const currentTime = new Date().getTime(); // Get the current timestamp
@@ -279,8 +212,9 @@ export default {
                 return;
             }
             this.lastKeyTime = currentTime;
-            this.isPlayingIndex--;
-            this.play(this.queue[this.isPlayingIndex]);
+            this,this.queueStore.isPlayingIndex = Math.max(0, this.queueStore.isPlayingIndex - 1);
+            this.play(this.queue[this.queueStore.isPlayingIndex]);
+            this.$router.push(`/playing/${this.queue[this.queueStore.isPlayingIndex].id}`);
         },
         formatTime(seconds) {
             if (isNaN(seconds)) return '00:00';
@@ -289,16 +223,9 @@ export default {
             return `${minutes}:${secs}`;
         },
         onPlayerReady(){
+            // this.queueStore.player(this.player);
             this.duration = this.player.getDuration();
             this.player.playVideo();
-            if (localStorage.getItem('mute') == 'true') {
-                this.toggleMute();
-            }
-            if (localStorage.getItem('volume')){
-                if (+localStorage.getItem('volume')>=0) {
-                    this.adjustVolume(+localStorage.getItem('volume'));
-                }
-            }
         },
         updateCurrentTime() {
             if (!this.isPlaying) {
@@ -310,8 +237,13 @@ export default {
         },
         onPlayerStateChange(event) {
             this.duration = this.player.getDuration();
+            if (event.data !== YT.PlayerState.BUFFERING) {
+                EventBus.emit('loading_0');
+                this.playerLoading = false;
+            }
             if (event.data === YT.PlayerState.PLAYING) {
                 EventBus.emit('loading_0');
+                this.playerLoading = false;
                 if (!this.isPlaying) {
                     this.isPlaying = true;
                 }
@@ -325,6 +257,7 @@ export default {
             }
             if (event.data === YT.PlayerState.BUFFERING) {
                 EventBus.emit('loading_1');
+                this.playerLoading = true;
             }
         },
         startPlayer(videoId) {
@@ -350,18 +283,33 @@ export default {
                 console.log(error);
             }
         },
+        async fetchQueue(trackId) {
+            return await fetch(`https://api-dqfspola6q-uc.a.run.app/music/getQueue?videoId=${trackId}`).then(
+                async (res) => {
+                    res = await res.json();
+                    return res;
+                }
+            )
+            .catch((err) => {
+                console.log(err);
+                this.toast.err('Something went wrong while adding to queue')
+            });
+        }
     },
     mounted() {
         document.addEventListener('keydown', this.handleKeyDown);
-        EventBus.on('play', (queue) => {
-            this.queue = queue;
-            this.isPlayingIndex = 0;
-            this.play(queue[0]);
-        })
+        EventBus.on('play_track', (track) => {
+            this.play(track);
+            this.queueStore.isPlayingIndex = 0;
+            this.queueStore.queue = [track];
+        });
+        EventBus.on('onlyPlay', (track) => {
+            this.play(track);
+        });
         EventBus.on('playIndex', (index) => {
             if (this.queue[index]){
                 console.log('eventbus plyerside', index, this.queue[index]);
-                this.isPlayingIndex = index;
+                this.queueStore.isPlayingIndex = index;
                 this.play(this.queue[index]);
             }
         })
@@ -382,16 +330,15 @@ export default {
         },
         isPlaying(val) {
             EventBus.emit('isPlaying', val);
+            val ? this.queueStore.isPlaying = true : this.queueStore.isPlaying = false;
         },
         isPlayingIndex(val) {
             EventBus.emit('isPlayingIndex', val);
+            this.queueStore.isPlayingIndex = val;
         },
         mute(val) {
             localStorage.setItem('mute', val);
         },
-        volume(val) {
-            localStorage.setItem('volume', val);
-        }
     }
 }
 </script>
@@ -402,23 +349,29 @@ html{
 }
 #cont {
     position: absolute;
-    display: flex;
-    width: 100%;
+    width: 50%;
     /* border: 1px solid #fff; */
     margin: auto;
     bottom: 0px;
     left: 0;
     right: 0;
-    background-color: #000;
+    background-color: #010101;
+    border: 0px solid red;
+    height: 10vh;
 }
 
-#cont>div:nth-child(1),
+#cont>div:nth-child(1){
+    width: 0px !important;
+    height: 0px !important;
+}
+
+/* #cont>div:nth-child(1),
 #cont>div:nth-child(3) {
     width: 40%;
     display: flex;
     align-items: center;
     justify-content: right;
-}
+} */
 
 #cont>div:nth-child(2) {
     width: 60%;
@@ -453,6 +406,27 @@ html{
 
 #cont>div:nth-child(3)>div:nth-child(3) {
     width: 10%;
+}
+
+.slideup-enter-active, .slideup-leave-active {
+  transition: transform 1s ease;
+}
+.slideup-enter-from {
+  transform: translateY(300%);
+}
+.slideup-leave-to{
+  transform: translateY(300%);
+}
+
+.ellipse {
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    width: 100%;
+    text-align: left;
+    font-size: small;
+    color: white;
+    width: 20vw;
 }
 
 @media (max-width: 600px) {
