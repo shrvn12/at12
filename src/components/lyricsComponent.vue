@@ -156,17 +156,18 @@ export default {
     }
 
     EventBus.on('info', (info) => {
-      this.info = info;
-      if (info.lyrics) {
-        this.parsedLyrics = parseLyrics(info.lyrics);
-        // On new lyrics, scroll back to top:
-        this.$refs.lyricContainer?.scrollTo({
-          top: 0,
-          behavior: "smooth",
-        });
-      } else {
-        this.parsedLyrics = [];
-      }
+        this.currentLyricIndex = null; // Reset current lyric index on new info
+        this.info = info;
+        if (info.lyrics) {
+            this.parsedLyrics = parseLyrics(info.lyrics);
+            // On new lyrics, scroll back to top:
+            this.$refs.lyricContainer?.scrollTo({
+            top: 0,
+            behavior: "smooth",
+            });
+        } else {
+            this.parsedLyrics = [];
+        }
     });
 
     EventBus.on('updateCurrentTime', (val) => this.updateCurrentTime(val));
