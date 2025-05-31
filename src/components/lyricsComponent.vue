@@ -164,6 +164,8 @@ export default {
           top: 0,
           behavior: "smooth",
         });
+      } else {
+        this.parsedLyrics = [];
       }
     });
 
