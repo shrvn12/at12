@@ -10,9 +10,14 @@
                 <img src="../assets/loading.gif" alt="">
             </div>
             <div v-else :style="{height: queueStore.queue.length > 0 ? '35vh' : '45vh'}">
-                <div v-for="(song, index) in songs" :key="index" @click="play(song)">
+                <div v-for="(song, index) in songs" :key="index" @click="play(song)" @mouseover="hoveredIndex = index" @mouseleave="hoveredIndex = null">
                     <div style="position: relative; height: 85%; width: 100%; overflow: hidden; border-radius: 15px ;">
                         <img class="thumbnail" :src="song.thumbnails.high.url" alt="">
+                        <div class="hplay">
+                             <v-btn class="hbtn" v-if="hoveredIndex == index || queueStore.queue[queueStore.isPlayingIndex]?.id == song.id" icon style="height: 100%; width: 100%; background-color: rgb(0,0,0,0.7);">
+                                <v-icon @click.stop="togglePlayPause(song)" :color="'#fff'">{{queueStore.queue[queueStore.isPlayingIndex]?.id == song.id && queueStore.isPlaying ? 'mdi-pause' : 'mdi-play'}}</v-icon>
+                            </v-btn>
+                        </div>
                     </div>
                     <p class="ellipse">{{ (song.title).split("|")[0] }}</p>
                 </div>
@@ -36,15 +41,16 @@ export default {
             selectedGenre: '',
             songs: [],
             isLoading: false,
+            hoveredIndex: null,
         }
     },
     methods:{
         searchGenreSong(query){
             if (!query || !query.length) {
-                query = 'trending';
+                query = 'trending in';
             }
             this.isLoading = true;
-            fetch(`https://api-dqfspola6q-uc.a.run.app/music/getQueue?query=${query}`).then(
+            fetch(`https://api-dqfspola6q-uc.a.run.app/music/getQueue?query=${query} india`).then(
                 async(res) => {
                     this.isLoading = false;
                     res = await res.json();
@@ -59,7 +65,20 @@ export default {
             });
         },
         play(track){
-            EventBus.emit('play_track', track)
+            if(this.queueStore.queue[this.queueStore.isPlayingIndex]?.id !== track.id){
+                EventBus.emit('play_track', track);
+            }
+        },
+        togglePlayPause(track){
+            if(!this.queueStore.queue.length || this.queueStore.queue[this.queueStore.isPlayingIndex]?.id !== track.id){
+                EventBus.emit('play_track', track);
+                return;
+            }
+            if(this.queueStore.isPlaying){
+                EventBus.emit('pause');
+            } else {
+                EventBus.emit('play');
+            }
         }
     },
     mounted(){
@@ -140,14 +159,9 @@ export default {
 
 .cont>div:nth-child(2)>div{
     /* border: 1px solid white; */
-    height: 20vh;
     width: 100%;
+    aspect-ratio: 1 / 1.15;
     cursor: pointer;
-}
-
-.cont>div:nth-child(2)>div>div>img:hover{
-    opacity: 0.5;
-    transition: all 0.3s ease;
 }
 
 .cont>div:nth-child(2)>div>div>img{
@@ -180,6 +194,26 @@ export default {
     width: 15vh;
     text-align: center;
     margin: auto;
+}
+
+.hplay{
+    position: absolute;
+    height: 5vh;
+    width: 5vh;
+    right: 0;
+    bottom: 0;
+    margin-bottom: 3%;
+    margin-right: 3%;
+    z-index: 1;
+}
+
+.hplay:hover{
+    transform: scale(1.1);
+    transition: all 0.05s;
+}
+
+.hbtn:hover{
+    background-color: black !important;
 }
 
 .fadeFaster-enter-active, .fade-leave-active {

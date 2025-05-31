@@ -1,23 +1,27 @@
 <template>
 <div id="cont">
+    <!-- <div id="playerView" style="position: absolute; border: 1px solid white; width: 90%; height: 75%; top: 0; margin-top: 5%;"></div> -->
     <div style=" width: 100%; height: 10%; display: flex;">
         <v-icon style="cursor: pointer;" color="#ffffff" @click="goBack()">mdi-arrow-left</v-icon>
     </div>
-    <div style="border: 0px solid white; width: 100%; margin-top: 5%; display: flex; align-items: start;">
-        <div style="width: 25%; border: 0px solid white; display: flex; align-items: center; justify-content: right;">
-            <div style="margin-right: 3%; position: relative; overflow: hidden; height: 150px; width: 150px; border: 0px solid white; border-radius: 15px;">
+     <div style=" width: 100%; height: 10%; display: flex; justify-content: right;">
+        <v-icon :title="showVideo? 'Audio Only' : 'Video (if available)'" @click="showVideo = !showVideo" style="cursor: pointer;" color="#ffffff">{{ !showVideo? 'mdi-youtube-tv' : 'mdi-ipod'}}</v-icon>
+    </div>
+    <div style="border: 0px solid white; width: 100%; height: 28vh; display: flex; align-items: start;">
+        <div class="imgcont" :style="{width: showVideo?'50%': '25%'}">
+            <div v-if="!showVideo" style="margin-right: 3%; position: relative; overflow: hidden; height: 150px; width: 150px; border: 0px solid white; border-radius: 15px;">
               <transition name="fade" mode="out-in">
                 <v-skeleton-loader v-if="isLoading || !info?.thumbnails?.standard?.url" color="#80808027" type="card"></v-skeleton-loader>
                 <img v-else class="thumbnail" :src="info?.thumbnails?.standard?.url" alt="">
               </transition>
             </div>
         </div>
-        <div style="width: 50%; border: 0px solid white; height: 100%; ">
+        <div class="infocont">
           <transition name="fade" mode="out-in">
               <v-skeleton-loader  v-if="isLoading || !info?.title" style="width: 50%" height="150px" color="#80808027" type="article"></v-skeleton-loader>
               <div v-else class="info">
                   <p v-if="info.title" style="width: 25vw; font-weight: bold; color: #ffffff; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;">{{ info?.title}}</p>
-                  <p v-if="info.artist" style="color: #ffffff; font-size: small;">{{info?.artist}}</p>
+                  <p v-if="info.artist" style="color: #ffffff; font-size: small;">{{info.artist?.name || info?.artist}}</p>
                   <p v-if="info?.stats?.viewCount" style="font-size: small"><v-icon color="#fff" size="small">mdi-calendar-outline</v-icon> {{ new Date(info?.publishedAt).toLocaleDateString() }}</p>
                   <p v-if="info?.stats?.likeCount" style="font-size: small"><v-icon color="#fff" size="small">mdi-heart-multiple</v-icon> {{ formatNumber(info?.stats?.likeCount) }}</p>
                   <p v-if="info?.stats?.viewCount" style="font-size: small"><v-icon color="#fff" size="small">mdi-eye</v-icon> {{ formatNumber(info?.stats?.viewCount) }}</p>
@@ -40,6 +44,8 @@ export default {
       toast: useToast(),
       info:{},
       isLoading: false,
+      player: document.getElementById('player'),
+      showVideo: true,
     }
   },
   computed: {
@@ -57,24 +63,30 @@ export default {
     },
   },
   setup() {
+    const queueStore = useQueueStore();
+    return { queueStore };
   },
   methods: {
     async loadInfo(id){
-       if (this.info.id == id) {
+      const queueInfo = this.queue.find((item) => item.id === id) || {};
+       if (this.info.id == this.videoId && this.info.stats) {
+          return this.info;
+        }
+        if (this.info.id == this.videoId && queueInfo?.stats){
+          this.info = queueInfo;
           return this.info;
         }
       this.isLoading = true;
         if (!id) {
           this.isLoading = false;
-            return;
+          return;
         }
         return fetch(`https://api-dqfspola6q-uc.a.run.app/music/getInfo?id=${id}`).then(async (res) => {
           res = await res.json();
-          if (this.info.id != res.id) {
-            this.info = res;
-          }
-          // this.queue[this.isPlayingIndex ||] = res;
+          this.info = res;
+          this.queueStore.addStats(this.isPlayingIndex ,res);
           this.isLoading = false;
+          EventBus.emit('updateInfo', res);
           return res;
         }).catch((err) => {
             this.isLoading = false;
@@ -103,33 +115,53 @@ export default {
   },
   mounted() {
     if (this.videoId){
-        this.loadInfo(this.videoId).then((info) => {
+        // this.loadInfo(this.videoId).then((info) => {
           if (!this.queue.length){
-            EventBus.emit('play_track', info);
+            EventBus.emit('play_track', { id: this.videoId});
           }
-        }).catch((err) => {
-            console.log(err);
-            this.toast.error('Something went wrong while getting the track')
-        });
+        // }).catch((err) => {
+        //     console.log(err);
+        //     this.toast.error('Something went wrong while getting the track')
+        // });
     } else {
         this.toast.error('Track not found');
         this.$router.push({ name: 'home' });
     }
+    // EventBus.on('fetchInfo', () => {
+    //   if (!this.isLoading){
+    //     this.loadInfo(this.videoId);
+    //   }
+    // })
+    this.info = this.queue[this.isPlayingIndex] || {};
+    EventBus.on('info', (info) => {
+      if (info.id === this.videoId) {
+        this.info = info;
+      }
+    });
   },
   watch: {
     videoId(newVal) {
       if (newVal) {
-        this.loadInfo(newVal).then((info) => {
-          console.log(this.videoId, this.queue[this.isPlayingIndex], this.isPlayingIndex);
-          if (this.videoId !== this.queue[this.isPlayingIndex]?.id) {
-            EventBus.emit('play_track', info);
+        // this.loadInfo(newVal).then((info) => {
+        //   console.log(this.videoId, this.queue[this.isPlayingIndex], this.isPlayingIndex);
+          if (this.info.id !== newVal) {
+            this.info = {};
           }
-          }).catch((err) => {
-              console.log(err);
-              this.toast.error('Something went wrong while getting the track')
-          });
+          if (this.info.id !== newVal && this.queue[this.isPlayingIndex]?.id == newVal) {
+            this.info = this.queue[this.isPlayingIndex]
+          }
+          if (this.videoId !== this.queue[this.isPlayingIndex]?.id) {
+            EventBus.emit('play_track', { id: newVal});
+          }
+          // }).catch((err) => {
+          //     console.log(err);
+          //     this.toast.error('Something went wrong while getting the track')
+          // });
         }
     },
+    showVideo(val){
+      EventBus.emit('show_video', val);
+    }
   },
 };
 </script>
@@ -139,6 +171,7 @@ export default {
     width: 100%;
     height: 43vh;
     border: 0px solid white;
+    position: relative;
 }
 
 .thumbnail{
@@ -160,5 +193,17 @@ export default {
     align-items: start;
     justify-content: right;
     text-align: left;
+}
+
+.infocont{
+  border: 0px solid white;
+  height: 100%;
+  width: 50%;
+}
+
+.imgcont{
+  width: 25%;
+  height: 100%; 
+  border: 0px solid white;
 }
 </style>

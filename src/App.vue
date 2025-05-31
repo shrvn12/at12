@@ -55,7 +55,9 @@
     </div>
   </div>
   <div style="border: 0px solid white; width: 25%; height: 100vh;">
-    <lyricsComponent></lyricsComponent>
+     <transition name="slideRight">
+      <lyricsComponent v-if="queueStore.isLyricsVisible"></lyricsComponent>
+    </transition>
   </div>
 </div>
 <div>
@@ -208,11 +210,6 @@ export default {
         this.isPlayingIndex = val;
         this.scrollToCurrentSong()
       })
-      // EventBus.on('toggleQueue', (val) => {
-      //   this.isQueueVisible = val;
-      //   this.queueStore.isQueueVisible = val;
-      //   this.isQueueVisible? setTimeout(() => { this.scrollToCurrentSong() }, 100): null;
-      // })
       EventBus.on('toggleLyrics', (val) => {
         this.isLyricsVisible = val;
       })
@@ -402,7 +399,7 @@ body{
 }
 
 .slideRight-enter-active, .slideRight-leave-active {
-  transition: transform 0.5s ease;
+  transition: transform 0.3s ease;
 }
 .slideRight-enter-from {
   transform: translateX(100%);

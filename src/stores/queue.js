@@ -4,6 +4,7 @@ export const useQueueStore = defineStore('queue', {
   state: () => ({
     queue: [],
     isQueueVisible: false,
+    isLyricsVisible: false,
     isPlayingIndex: 0,
     isPlaying: false,
     player: null,
@@ -32,6 +33,18 @@ export const useQueueStore = defineStore('queue', {
     },
     player(player){
       this.player = player;
+    },
+    async fetchInfo(id){
+      return await fetch(`https://api-dqfspola6q-uc.a.run.app/music/getInfo?id=${id}`).then(async (res) => {
+          res = await res.json();
+          return res;
+        }).catch((err) => {
+            console.log(err);
+            return {
+              error: 'An error occurred while fetching video information.',
+              details: err.message
+            };
+        })
     }
   }
 });

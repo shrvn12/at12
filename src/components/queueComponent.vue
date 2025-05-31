@@ -98,6 +98,13 @@ export default {
       setTimeout(() => {
         this.scrollToCurrentSong();
       }, 300)
+    },
+    watch: {
+      'queueStore.isPlayingIndex'(val) {
+        if (val !== undefined) {
+          this.scrollToCurrentSong();
+        }
+      }
     }
 }
 </script>

@@ -1,8 +1,8 @@
 <template>
     <div id="cont">
-        <div>
-            <div id="player" style="height: 0px; width: 0px;"></div>
-        </div>
+            <div v-show="showVideo && this.$route.name == 'nowPlaying'">
+                <div id="player" style="height: 30vh; width: 90%;"></div>
+            </div>
         <div style="border: 0px solid green; width: 100%; height: min-content; margin-top: -5px;">
             <div style=" z-index: 1;cursor: pointer; border: 0px solid white; position: absolute; width: 100%; margin-top: -1%; height: min-content; display: flex; justify-content: space-between; align-items: center;" @click="() => { $router.push(`/playing/${queue[isPlayingIndex].id}`) }">
                 <transition name="fade" mode="out-in">
@@ -10,7 +10,6 @@
                 </transition>
                     <p style="color: white; font-size: small; margin: 0px; text-align: right; margin-left: auto;">{{`${formatTime(currentTime)} / ${formatTime(duration)}`}}</p>
                 </div>                
-
             <v-slider 
                 style="margin:  2px !important; height: 22px;"
                 v-model="currentTime"
@@ -66,8 +65,8 @@
             <v-btn @click="toggleQueue()" icon :ripple="true" title="repeat" base-color="transparent">
                     <v-icon size="default" color="#fff">{{queueStore.isQueueVisible? "mdi-list-box" : "mdi-list-box-outline"}}</v-icon>
             </v-btn>
-            <v-btn icon :ripple="!lyricsDisabled" title="repeat" base-color="transparent" :style="{cursor: shuffleDisabled ? 'not-allowed' : 'pointer'}">
-                    <v-icon @click="toggleLyrics()" :disabled="lyricsDisabled" size="default" color="#fff">{{ lyricsStore.isLyricsVisible? 'mdi-music-box' : 'mdi-music-box-outline'}}</v-icon>
+            <v-btn icon :ripple="!lyricsDisabled" title="repeat" base-color="transparent">
+                    <v-icon @click="toggleLyrics()" size="default" color="#fff">{{ queueStore.isLyricsVisible? 'mdi-music-box' : 'mdi-music-box-outline'}}</v-icon>
             </v-btn>
         </div>
     </div>
@@ -110,7 +109,7 @@ export default {
             volLabel: false,
             mute: false,
             volume: 100,
-            duration: 100,
+            duration: null,
             videoId: '',
             playBackTimer: null,
             lastKeyTime: 0,
@@ -122,8 +121,12 @@ export default {
             repeat: false,
             repeatOnce: false,
             shuffleDisabled: true,
-            lyricsDisabled: true,
+            lyricsDisabled: false,
             thumbTimeout: null,
+            showVideo: true,
+            playerReady: false,
+            animationFrame: null,
+            pendingVideoId: null,
         }
     },
     methods: {
@@ -148,8 +151,11 @@ export default {
                 this.repeatOnce = false;
             }
         },
-         toggleQueue() {
+        toggleQueue() {
             this.queueStore.isQueueVisible = !this.queueStore.isQueueVisible;
+        },
+        toggleLyrics() {
+            this.queueStore.isLyricsVisible = !this.queueStore.isLyricsVisible;
         },
         handleVolumeChange(value) {
             if (this.player) {
@@ -157,16 +163,40 @@ export default {
             }
         },
         async play(data) {
-            if (!data || !data.id) {
-                return;
-            }
+            if (!data || !data.id) return;
+
             this.videoId = data.id;
-            !this.player? this.startPlayer(data.id) : this.player.loadVideoById(data.id);
+
+            if (!this.player) {
+                // First time ever: create the player with startPlayer()
+                this.startPlayer(data.id);
+            } else if (this.playerReady) {
+                this.player.loadVideoById(data.id);
+            } else {
+                // Player exists but isn’t ready yet → defer
+                this.pendingVideoId = data.id;
+            }
+            if (!this.queueStore.queue[this.queueStore.isPlayingIndex].stats){
+                this.queueStore.fetchInfo(data.id).then((info) => {
+                    this.queueStore.queue[this.queueStore.isPlayingIndex] = info;
+                    EventBus.emit('info', info);
+                });
+            } else {
+                EventBus.emit('info', this.queueStore.queue[this.queueStore.isPlayingIndex]);
+            }
         },
         seek() {
             this.player.seekTo(this.currentTime, true);
         },
+        seekToTime(time) {
+            if (this.player && time >= 0 && time <= this.duration) {
+                this.player.seekTo(time, true);
+                this.currentTime = this.player.getCurrentTime();
+            }
+        },
         playNext() {
+            if (!this.playerReady) return;
+            this.currentTime = 0;
             if (this.repeat){
                 this.player.seekTo(0, true);
                 this.player.playVideo();
@@ -207,6 +237,8 @@ export default {
                 }
         },
         playPrev() {
+            if (!this.playerReady) return;
+            this.currentTime = 0;
             const currentTime = new Date().getTime(); // Get the current timestamp
             if (currentTime - this.lastKeyTime < this.keyDelay) {
                 return;
@@ -223,16 +255,29 @@ export default {
             return `${minutes}:${secs}`;
         },
         onPlayerReady(){
-            // this.queueStore.player(this.player);
+            this.playerReady = true;
             this.duration = this.player.getDuration();
-            this.player.playVideo();
+            // If someone queued up a pendingVideoId during init, load it now:
+            if (this.pendingVideoId) {
+                this.player.loadVideoById(this.pendingVideoId);
+                this.pendingVideoId = null;
+            } else {
+                // Otherwise, just start playing whatever was in the constructor’s videoId
+                this.player.playVideo();
+            }
         },
         updateCurrentTime() {
-            if (!this.isPlaying) {
-                this.playBackTimer = null;
-            }
-            else if (this.player && this.player.getCurrentTime) {
+            if (this.player && this.player.getCurrentTime) {
                 this.currentTime = this.player.getCurrentTime();
+            }
+            if (this.isPlaying) {
+                this.animationFrame = requestAnimationFrame(this.updateCurrentTime);
+            }
+        },
+        cancelAnimationFrameLoop() {
+            if (this.animationFrame) {
+                cancelAnimationFrame(this.animationFrame);
+                this.animationFrame = null;
             }
         },
         onPlayerStateChange(event) {
@@ -244,13 +289,13 @@ export default {
             if (event.data === YT.PlayerState.PLAYING) {
                 EventBus.emit('loading_0');
                 this.playerLoading = false;
-                if (!this.isPlaying) {
-                    this.isPlaying = true;
-                }
-                this.playBackTimer = setInterval(() => this.updateCurrentTime(), 1000);
+                this.isPlaying = true;
+                this.updateCurrentTime(); // ⬅ Start the animation loop
+
             }
             else {
                 this.isPlaying = false;
+                this.cancelAnimationFrameLoop();
             }
             if (event.data === YT.PlayerState.ENDED) {
                 this.playNext();
@@ -260,27 +305,65 @@ export default {
                 this.playerLoading = true;
             }
         },
+        //     try {
+        //         console.log(YT);
+        //         this.player = new YT.Player("player", {
+        //             height: "360",
+        //             width: "640",
+        //             videoId: videoId, // Replace with your YouTube video ID
+        //             playerVars: {
+        //                 rel: 0, // Disable related videos
+        //                 controls: 0, // Hide player controls
+        //                 modestbranding: 1, // Minimize YouTube branding
+        //                 disablekb: 1, // Disable keyboard controls
+        //                 fs: 0, // Disable fullscreen option
+        //                 iv_load_policy: 3, // Disable video annotations
+        //                 cc_load_policy: 0, // Disable closed captions
+        //                 autohide: 1, // Hide video controls when not in use
+        //             },
+        //             events: {
+        //                 onReady: this.onPlayerReady,
+        //                 onStateChange: this.onPlayerStateChange,
+        //             },
+        //         });
+        //     } catch (error) {
+        //         console.log('error while creating player');
+        //         console.log(error);
+        //     }
+        // },
         startPlayer(videoId) {
-            try {
+            const initializePlayer = () => {
                 this.player = new YT.Player("player", {
-                    height: "360",
-                    width: "640",
-                    videoId: videoId, // Replace with your YouTube video ID
-                    playerVars: {
-                        rel: 0, // Disable related videos
-                        controls: 0, // Hide player controls
-                        modestbranding: 1, // Minimize YouTube branding
-                        disablekb: 1, // Disable keyboard controls
-                        fs: 0, // Disable fullscreen option
-                    },
-                    events: {
-                        onReady: this.onPlayerReady,
-                        onStateChange: this.onPlayerStateChange,
-                    },
+                height: "360",
+                width: "640",
+                videoId: videoId,
+                playerVars: {
+                    enablejsapi: 1,                        // ⬅️ explicitly enable JS API
+                    origin: window.location.origin,        // ⬅️ tell YouTube which origin you’re on
+                    rel: 0,
+                    controls: 0,
+                    modestbranding: 1,
+                    disablekb: 1,
+                    fs: 0,
+                    iv_load_policy: 3,
+                    cc_load_policy: 0,
+                    autohide: 1,
+                },
+                events: {
+                    onReady: this.onPlayerReady,
+                    onStateChange: this.onPlayerStateChange,
+                },
                 });
-            } catch (error) {
-                console.log('error while creating player');
-                console.log(error);
+            };
+
+            // Wait for YT to be available
+            if (window.YT && window.YT.Player) {
+                initializePlayer();
+            } else {
+                window.onYouTubeIframeAPIReady = () => {
+                    console.log('YouTube API is ready');
+                    initializePlayer();
+                };
             }
         },
         async fetchQueue(trackId) {
@@ -299,9 +382,9 @@ export default {
     mounted() {
         document.addEventListener('keydown', this.handleKeyDown);
         EventBus.on('play_track', (track) => {
-            this.play(track);
             this.queueStore.isPlayingIndex = 0;
             this.queueStore.queue = [track];
+            this.play(track);
         });
         EventBus.on('onlyPlay', (track) => {
             this.play(track);
@@ -313,16 +396,26 @@ export default {
                 this.play(this.queue[index]);
             }
         })
+        EventBus.on('pause', () => {
+            if (this.player && this.isPlaying) {
+                this.togglePlayPause();
+            }
+        });
+        EventBus.on('play', () => {
+            if (this.player && !this.isPlaying) {
+                this.togglePlayPause();
+            }
+        });
         EventBus.on('deleteFromQueue', (index) => {
             this.queue.splice(index, 1);
         })
-        if (!window.YT) {
-            const script = document.createElement("script");
-            script.src = "https://www.youtube.com/iframe_api";
-            script.onload = () => {
-            };
-            document.head.appendChild(script);
-        }
+        EventBus.on('show_video', (val) => {
+            this.showVideo = val;
+            console.log('show video', val);
+        })
+        EventBus.on('jumpToTime', (time) => {
+            this.seekToTime(time);
+        });
     },
     watch: {
         queue(val) {
@@ -339,6 +432,12 @@ export default {
         mute(val) {
             localStorage.setItem('mute', val);
         },
+        duration() {
+            this.queueStore.queue[this.queueStore.isPlayingIndex].duration = this.duration;
+        },
+        currentTime(val){
+            EventBus.emit('updateCurrentTime', val);
+        }
     }
 }
 </script>
@@ -350,7 +449,6 @@ html{
 #cont {
     position: absolute;
     width: 50%;
-    /* border: 1px solid #fff; */
     margin: auto;
     bottom: 0px;
     left: 0;
@@ -361,17 +459,11 @@ html{
 }
 
 #cont>div:nth-child(1){
-    width: 0px !important;
-    height: 0px !important;
+    position: absolute;
+    width: 50%;
+    top: -38vh;
+    border: 0px solid red;
 }
-
-/* #cont>div:nth-child(1),
-#cont>div:nth-child(3) {
-    width: 40%;
-    display: flex;
-    align-items: center;
-    justify-content: right;
-} */
 
 #cont>div:nth-child(2) {
     width: 60%;
