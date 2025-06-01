@@ -9,6 +9,7 @@ export const useQueueStore = defineStore('queue', {
     isPlaying: false,
     player: null,
     isPaused: false,
+    isLoading: false,
   }),
   actions: {
     addStats(index, stats) {
@@ -35,11 +36,14 @@ export const useQueueStore = defineStore('queue', {
       this.player = player;
     },
     async fetchInfo(id){
+      this.isLoading = true;
       return await fetch(`https://api-dqfspola6q-uc.a.run.app/music/getInfo?id=${id}`).then(async (res) => {
           res = await res.json();
+          this.isLoading = false;
           return res;
         }).catch((err) => {
             console.log(err);
+            this.isLoading = false;
             return {
               error: 'An error occurred while fetching video information.',
               details: err.message

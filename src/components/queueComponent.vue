@@ -22,6 +22,7 @@
               'border-bottom': index === queueStore.isPlayingIndex ? '1px solid #fc2c55' : 'none',
               color: index === queueStore.isPlayingIndex ? 'white' : 'grey',
               position: 'relative', /* Position delete icon absolutely inside each item */
+              backgroundColor: index == hoveredIndex ? '#d3d3d317': 'transparent',
             }"
             @click="play(song, index)"
           >
@@ -66,14 +67,13 @@ export default {
           }
       },
       play(track, index){
+        this.queueStore.isPlayingIndex = index;
           EventBus.emit('onlyPlay', track);
           this.$router.replace(`/playing/${track.id}`);
-          this.queueStore.isPlayingIndex = index;
           this.scrollToCurrentSong()
       },
       scrollToCurrentSong() {
         const queueContainer = this.$refs.queueContainer;
-        console.log('reached', queueContainer);
 
         if (!queueContainer || this.queueStore.isPlayingIndex === undefined) return;
         // Get the current song element

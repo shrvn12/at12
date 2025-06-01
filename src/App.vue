@@ -1,5 +1,8 @@
 <template>
-<div style="border: 0px solid white; height: 100vh; display: flex;">
+  <div v-if="isMobile">
+    <mobileBlocker></mobileBlocker>
+  </div>
+<div v-else style="border: 0px solid white; height: 100vh; display: flex;">
   <div style="border: 0px solid white; width: 25%; height: 100vh;">
     <transition name="slide">
       <QueueComponent v-if="queueStore.isQueueVisible"></QueueComponent>
@@ -77,6 +80,7 @@ import { useToast } from 'vue-toastification';
 import { RouterView } from 'vue-router';
 import QueueComponent from './components/queueComponent.vue';
 import lyricsComponent from './components/lyricsComponent.vue';
+import mobileBlocker from './components/mobileBlocker.vue';
 
 export default {
   name: 'App',
@@ -84,7 +88,8 @@ export default {
     PlayerComponent,
     RouterView,
     QueueComponent,
-    lyricsComponent
+    lyricsComponent,
+    mobileBlocker
   },
   setup() {
     // Access the store in setup (reactive by default)
@@ -110,8 +115,12 @@ export default {
       isPlayingIndex: 0,
       isQueueVisible: false,
       isLyricsVisible: false,
-      hoveredIndex: null
+      hoveredIndex: null,
+      isMobile: false,
     }
+  },
+   created() {
+    this.isMobile = /Mobi|Android|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent);
   },
   methods: {
     scrollToCurrentSong() {
@@ -135,12 +144,6 @@ export default {
         top: Math.max(scrollPosition, 0), // Prevent negative scroll values
         behavior: "smooth",
       });
-    },
-    playSong(index){
-      if (typeof index !== "number" || index == this.isPlayingIndex) {
-        return;
-      }
-      EventBus.emit('playIndex', index);
     },
     searchSong: debounce(function(query){
       if (!query){

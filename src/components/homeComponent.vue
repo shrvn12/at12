@@ -5,7 +5,7 @@
                <p>{{ genre }}</p>
            </div>
         </div>
-        <Transition name="fadeFaster" mode="out">
+        <Transition name="fade" mode="in-out">
             <div v-if="isLoading" style="display: flex; justify-content: center; align-items: center; height: 45vh;">
                 <img src="../assets/loading.gif" alt="">
             </div>
@@ -217,9 +217,9 @@ export default {
 }
 
 .fadeFaster-enter-active, .fade-leave-active {
-  transition: opacity 0.25s ease;
+  transition: opacity 0.5s ease;
 }
-.fade-leave-to {
+.fadeFaster-leave-to, .fade-enter-from {
   opacity: 0;
 }
 .fadeFaster-enter-to, .fade-leave-from {

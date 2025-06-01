@@ -178,7 +178,15 @@ export default {
             }
             if (!this.queueStore.queue[this.queueStore.isPlayingIndex].stats){
                 this.queueStore.fetchInfo(data.id).then((info) => {
-                    this.queueStore.queue[this.queueStore.isPlayingIndex] = info;
+                    if(this.queueStore.isPlayingIndex == 0 && !['10', '1'].includes(info.categoryId)){
+                        this.player.destroy();
+                        this.toast.error('Cannot play this video');
+                        this.$router.replace('/');
+                        return;
+                    }
+                    if (this.queueStore.queue[this.queueStore.isPlayingIndex].id == info.id) {
+                        this.queueStore.queue[this.queueStore.isPlayingIndex] = info;
+                    }
                     EventBus.emit('info', info);
                 });
             } else {
@@ -187,6 +195,7 @@ export default {
         },
         seek() {
             this.player.seekTo(this.currentTime, true);
+            EventBus.emit('updateCurrentTime', this.currentTime);
         },
         seekToTime(time) {
             if (this.player && time >= 0 && time <= this.duration) {
@@ -389,13 +398,6 @@ export default {
         EventBus.on('onlyPlay', (track) => {
             this.play(track);
         });
-        EventBus.on('playIndex', (index) => {
-            if (this.queue[index]){
-                console.log('eventbus plyerside', index, this.queue[index]);
-                this.queueStore.isPlayingIndex = index;
-                this.play(this.queue[index]);
-            }
-        })
         EventBus.on('pause', () => {
             if (this.player && this.isPlaying) {
                 this.togglePlayPause();

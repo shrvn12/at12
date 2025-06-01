@@ -3,8 +3,12 @@
         ref="lyricContainer"
         style="border: 0px solid white; position: absolute; right: 0; width: 20%; height: 100vh; overflow-y: auto; scrollbar-width: none; -ms-overflow-style: none;"
     >
-    <div v-if="!info.lyrics">
-        <p style="color: white;">Lyrics not available</p>
+    <div style="margin-top: 40vh;" v-if="!info.lyrics">
+        <span v-if="queueStore.isLoading" class="loader"></span>
+        <div v-else style="width: 100%;">
+            <img style="width: 40%;" src="../assets/icebear.png" alt="">
+            <p style="color: white; margin-top: -3%;">Lyrics not available</p>
+        </div>
     </div>
     <v-list v-else default style="background-color: transparent; margin: 0; padding: 0;">
         <v-list-item v-for="(line, index) in parsedLyrics" :key="index">
@@ -16,29 +20,24 @@
 
 <script>
 function parseLyrics(lyricsText) {
-  const lines = lyricsText.split(/(?=\[\d{2}:\d{2}\.\d{2}\])/g); // splits before each timestamp
   const result = [];
+  const lines = lyricsText.split('\n'); // Split by newline
 
-  for (let line of lines) {
-    const regex = /\[(\d{2}):(\d{2})\.(\d{2})\]/g;
-    let match;
-    const times = [];
-
-    while ((match = regex.exec(line)) !== null) {
-      const [full, min, sec, ms] = match;
-      const totalSeconds = parseInt(min) * 60 + parseInt(sec) + parseInt(ms) / 100;
-      times.push(totalSeconds);
-      full;
+  for (const line of lines) {
+    const match = line.match(/^\[(\d{2}):(\d{2})\.(\d{2,3})\](.*)$/);
+    if (match) {
+      const [, min, sec, ms, text] = match;
+      const time = parseInt(min) * 60 + parseInt(sec) + parseInt(ms) / 1000;
+      result.push({ time, text: text.trim() });
     }
-
-    const text = line.replace(/\[\d{2}:\d{2}\.\d{2}\]/g, "").trim();
-    times.forEach(time => {
-      result.push({ time, text });
-    });
   }
 
-  return result.sort((a, b) => a.time - b.time);
+  return result;
 }
+
+
+
+
 
 import { EventBus } from '@/eventBus';
 import { useToast } from 'vue-toastification';
@@ -156,10 +155,12 @@ export default {
     }
 
     EventBus.on('info', (info) => {
+        console.log(info);
         this.currentLyricIndex = null; // Reset current lyric index on new info
         this.info = info;
-        if (info.lyrics) {
+        if (info.lyrics && info.synced) {
             this.parsedLyrics = parseLyrics(info.lyrics);
+            console.log("Parsed lyrics:", this.parsedLyrics);
             // On new lyrics, scroll back to top:
             this.$refs.lyricContainer?.scrollTo({
             top: 0,
@@ -200,4 +201,50 @@ export default {
   color: white;
   text-decoration: underline;
 }
+
+.loader {
+  width: 48px;
+  height: 40px;
+  margin-top: 30px;
+  display: inline-block;
+  position: relative;
+  background: #FFF;
+  border-radius: 15% 15% 35% 35%;
+}
+.loader::after {
+  content: '';  
+  box-sizing: border-box;
+  position: absolute;
+  left: 45px;
+  top: 8px;
+  border: 4px solid #FFF;
+  width: 16px;
+  height: 20px;
+  border-radius: 0 4px 4px 0;
+}
+.loader::before {
+  content: '';  
+  position: absolute;
+  width: 1px;
+  height: 10px;
+  color: #FFF;
+  top: -15px;
+  left: 11px;
+  box-sizing: border-box;
+  animation: animloader 1s ease infinite;
+}
+
+@keyframes animloader {
+    0% {
+  box-shadow: 2px 0px rgba(255, 255, 255, 0), 12px 0px rgba(255, 255, 255, 0.3), 20px 0px rgba(255, 255, 255, 0);
+}
+    50% {
+  box-shadow: 2px -5px rgba(255, 255, 255, 0.5), 12px -3px rgba(255, 255, 255, 0.5), 20px -2px rgba(255, 255, 255, 0.6);
+}
+    100% {
+  box-shadow: 2px -8px rgba(255, 255, 255, 0), 12px -5px rgba(255, 255, 255, 0), 20px -5px rgba(255, 255, 255, 0);
+}
+  }
+      
+    
 </style>
