@@ -1,8 +1,5 @@
 <template>
-  <div v-if="isMobile">
-    <mobileBlocker></mobileBlocker>
-  </div>
-<div v-else style="border: 0px solid white; height: 100vh; display: flex;">
+<div style="border: 0px solid white; height: 100vh; display: flex;">
   <div style="border: 0px solid white; width: 25%; height: 100vh;">
     <transition name="slide">
       <QueueComponent v-if="queueStore.isQueueVisible"></QueueComponent>
@@ -116,11 +113,7 @@ export default {
       isQueueVisible: false,
       isLyricsVisible: false,
       hoveredIndex: null,
-      isMobile: false,
     }
-  },
-   created() {
-    this.isMobile = /Mobi|Android|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent);
   },
   methods: {
     scrollToCurrentSong() {
