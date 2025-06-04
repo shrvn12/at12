@@ -47,6 +47,9 @@ export default {
             searchRes: [],
         }
     },
+    deactivated(){
+        EventBus.emit('searchQuery', null);
+    },
     computed: {
         searchQuery() {
             return this.$route.query.q;
@@ -57,6 +60,9 @@ export default {
     },
     unmounted() {
         EventBus.emit('searchQuery', null);
+    },
+    activated() {
+        EventBus.emit('searchQuery', this.searchQuery);
     },
     methods: {
         play(track){

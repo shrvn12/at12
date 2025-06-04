@@ -11,7 +11,7 @@
         </div>
     </div>
     <v-list v-else default style="background-color: transparent; margin: 0; padding: 0;">
-        <v-list-item v-for="(line, index) in parsedLyrics" :key="index">
+        <v-list-item v-for="(line, index) in info.lyrics" :key="index">
             <p onmouseover="this.style.textDecoration = 'underline'" onmouseout="this.style.textDecoration = 'none'" style="font-weight: bold; font-size: large;" @click="index != currentLyricIndex && jumpToTime(line.time)" :class="currentLyricIndex !== null && index <= currentLyricIndex? 'active' : 'inactive'">{{ line.text || '♪♪' }}</p>
         </v-list-item>
     </v-list>
@@ -19,25 +19,6 @@
 </template>
 
 <script>
-function parseLyrics(lyricsText) {
-  const result = [];
-  const lines = lyricsText.split('\n'); // Split by newline
-
-  for (const line of lines) {
-    const match = line.match(/^\[(\d{2}):(\d{2})\.(\d{2,3})\](.*)$/);
-    if (match) {
-      const [, min, sec, ms, text] = match;
-      const time = parseInt(min) * 60 + parseInt(sec) + parseInt(ms) / 1000;
-      result.push({ time, text: text.trim() });
-    }
-  }
-
-  return result;
-}
-
-
-
-
 
 import { EventBus } from '@/eventBus';
 import { useToast } from 'vue-toastification';
@@ -57,7 +38,6 @@ export default {
     return {
       info: this.queueStore.queue[this.queueStore.isPlayingIndex] || {},
       toast: useToast(),
-      lyricsRaw: `...`, // your raw lyrics go here
       parsedLyrics: [],
       currentTime: 0,
       currentLyricIndex: null,
@@ -69,6 +49,7 @@ export default {
 
   methods: {
     handleUserScroll() {
+      if (!this.info || !this.info.lyrics  || !this.info.lyrics.length) return;
       this.autoscroll = false;
       this.userScrolling = true;
 
@@ -82,6 +63,7 @@ export default {
     },
 
     checkIfCurrentLineIsVisible() {
+      if (!this.info || !this.info.lyrics  || !this.info.lyrics.length) return;
       const lyricContainer = this.$refs.lyricContainer;
       if (!lyricContainer || this.currentLyricIndex === undefined) return;
 
@@ -100,6 +82,7 @@ export default {
     },
 
     updateCurrentTime(time) {
+      if (!this.info || !this.info.lyrics || !this.info.lyrics.length) return;
       // ── If time is exactly zero, do NOT highlight anything yet ──
       if (time === 0) {
         // Still update currentTime internally, but skip lyric‐index logic:
@@ -111,10 +94,10 @@ export default {
       this.currentTime = time;
       this.checkIfCurrentLineIsVisible();
 
-      const idx = this.parsedLyrics.findIndex((line, i) => {
+      const idx = this.info.lyrics.findIndex((line, i) => {
         return (
           line.time <= time &&
-          (i === this.parsedLyrics.length - 1 || this.parsedLyrics[i + 1].time > time)
+          (i === this.info.lyrics.length - 1 || this.info.lyrics[i + 1].time > time)
         );
       });
 
@@ -127,6 +110,7 @@ export default {
     },
 
     scrollToCurrentLine() {
+      if (!this.info || !this.info.lyrics  || !this.info.lyrics.length) return;
       const lyricContainer = this.$refs.lyricContainer;
       if (!lyricContainer || this.currentLyricIndex === undefined) return;
 
@@ -146,21 +130,20 @@ export default {
       time && EventBus.emit('jumpToTime', time);
     }
   },
-
+  activated(){
+    if (this.info.id !== this.queueStore.queue[this.queueStore.isPlayingIndex]?.id) {
+     this.info = this.queueStore.queue[this.queueStore.isPlayingIndex];
+    }
+  },
   mounted() {
     // Initialize with whatever was already in the queue:
     this.info = this.queueStore.queue[this.queueStore.isPlayingIndex];
-    if (this.info?.lyrics) {
-      this.parsedLyrics = parseLyrics(this.info.lyrics);
-    }
 
     EventBus.on('info', (info) => {
         console.log(info);
         this.currentLyricIndex = null; // Reset current lyric index on new info
         this.info = info;
-        if (info.lyrics && info.synced) {
-            this.parsedLyrics = parseLyrics(info.lyrics);
-            console.log("Parsed lyrics:", this.parsedLyrics);
+        if (info.lyrics) {
             // On new lyrics, scroll back to top:
             this.$refs.lyricContainer?.scrollTo({
             top: 0,

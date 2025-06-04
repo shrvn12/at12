@@ -19,8 +19,12 @@ let skipNextPush = false;
 
 router.beforeEach((to, from, next) => {
   const isLeavingNowPlaying = from.name === 'nowPlaying';
+  const isLeavingSearch = from.name === 'search';
 
-  if (isLeavingNowPlaying && !skipNextPush) {
+  if (to.name == 'search' && isLeavingSearch && !skipNextPush) {
+    skipNextPush = true;
+    router.replace(to.fullPath);
+  } else if (isLeavingNowPlaying && !skipNextPush) {
     skipNextPush = true;
     router.replace(to.fullPath);
   } else {

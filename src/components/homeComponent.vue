@@ -119,6 +119,7 @@ export default {
     /* border: 1px solid red; */
     white-space: nowrap;
     overflow-x: auto;
+    overflow-y: hidden;
 }
 
 .cont>div:nth-child(1)>div{

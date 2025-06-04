@@ -2,7 +2,7 @@
 <div style="border: 0px solid white; height: 100vh; display: flex;">
   <div style="border: 0px solid white; width: 25%; height: 100vh;">
     <transition name="slide">
-      <QueueComponent v-if="queueStore.isQueueVisible"></QueueComponent>
+      <QueueComponent v-if="queueStore.isQueueVisible && queueStore.queue.length"></QueueComponent>
     </transition>
   </div>
   <div style="border: 0px solid white; width: 50%; height: 100vh;">
@@ -16,6 +16,8 @@
                 x="50%"
                 y="70%"
                 text-anchor="middle"
+                style="cursor: pointer; user-select: none; -webkit-user-select: none; -moz-user-select: none; -ms-user-select: none;"
+                @click="this.$router.push({ path: '/' })"
               >
                 @12
               </text>
@@ -56,7 +58,7 @@
   </div>
   <div style="border: 0px solid white; width: 25%; height: 100vh;">
      <transition name="slideRight">
-      <lyricsComponent v-if="queueStore.isLyricsVisible"></lyricsComponent>
+      <lyricsComponent v-if="queueStore.isLyricsVisible  && queueStore.queue.length"></lyricsComponent>
     </transition>
   </div>
 </div>
@@ -98,46 +100,15 @@ export default {
   data: () => {
     return{
       toast: useToast(),
-      iframe : null,
       searchQuery: null,
-      searchSuggestions: [],
-      currentSongData: {},
-      nextSongData: {},
       isLoading: false,
       songQuery: null,
-      mountIframe: false,
       queue: [],
       searchRes: [],
       isPlaying: false,
-      isPlayingIndex: 0,
-      isQueueVisible: false,
-      isLyricsVisible: false,
-      hoveredIndex: null,
     }
   },
   methods: {
-    scrollToCurrentSong() {
-      const queueContainer = this.$refs.queueContainer;
-
-      if (!queueContainer || this.isPlayingIndex === undefined) return;
-      // Get the current song element
-      const currentSongElement = queueContainer.querySelectorAll(".v-list-item")[this.isPlayingIndex];
-
-      if (!currentSongElement) return;
-
-      // Calculate the scroll position to center the current song
-      const containerHeight = queueContainer.clientHeight;
-      const songOffsetTop = currentSongElement.offsetTop; // Get the top position of the current song relative to the container
-      const songHeight = currentSongElement.offsetHeight || 70; // Fallback to 70px if height is unavailable
-
-      // Center the song in the viewport
-      const scrollPosition = songOffsetTop - containerHeight / 2 + songHeight / 2;
-
-      queueContainer.scrollTo({
-        top: Math.max(scrollPosition, 0), // Prevent negative scroll values
-        behavior: "smooth",
-      });
-    },
     searchSong: debounce(function(query){
       if (!query){
         return;
@@ -146,22 +117,6 @@ export default {
         this.$router.push({path: '/search', query: { q: query }});
       }
     }, 700),
-    deleteFromQueue(index){
-      if (index && index > this.isPlayingIndex) {
-        EventBus.emit('deleteFromQueue', index);
-      }
-    },
-    formatNumber(num) {
-      if (num >= 1_000_000_000) {
-        return (num / 1_000_000_000).toFixed(1).replace(/\.0$/, '') + 'B'; // Billions
-      } else if (num >= 1_000_000) {
-        return (num / 1_000_000).toFixed(1).replace(/\.0$/, '') + 'M'; // Millions
-      } else if (num >= 1_000) {
-        return (num / 1_000).toFixed(1).replace(/\.0$/, '') + 'K'; // Thousands
-      } else {
-        return num.toString(); // Less than 1000, return as is
-      }
-    }
   },
   watch: {
     songQuery(val){
@@ -171,22 +126,6 @@ export default {
     },
   },
   mounted() {
-    this.iframe = document?.getElementById('youtube-iframe');
-      document.addEventListener('keydown', this.handleKeydown);
-      EventBus.on('changeData', (data) => {
-        this.currentSongData = data;
-        this.nextSongData = {};
-      })
-      EventBus.on('upNext', (data) => {
-        this.nextSongData = data;
-      })
-      EventBus.on('updateInfo', (info) => {
-        this.currentSongData = info[0];
-        this.nextSongData = info[1];
-      })
-      EventBus.on('clearSearch', () => {
-        this.songQuery = null;
-      })
       EventBus.on('searchQuery', (query) => {
         this.songQuery = query;
       })
@@ -201,13 +140,6 @@ export default {
       }),
       EventBus.on('isPlaying', (val) => {
         this.isPlaying = val;
-      })
-      EventBus.on('isPlayingIndex', (val) => {
-        this.isPlayingIndex = val;
-        this.scrollToCurrentSong()
-      })
-      EventBus.on('toggleLyrics', (val) => {
-        this.isLyricsVisible = val;
       })
   }
 }

@@ -5,26 +5,34 @@
         <v-icon style="cursor: pointer;" color="#ffffff" @click="goBack()">mdi-arrow-left</v-icon>
     </div>
      <div style=" width: 100%; height: 10%; display: flex; justify-content: right;">
-        <v-icon :title="showVideo? 'Audio Only' : 'Video (if available)'" @click="showVideo = !showVideo" style="cursor: pointer;" color="#ffffff">{{ !showVideo? 'mdi-youtube-tv' : 'mdi-ipod'}}</v-icon>
+        <v-icon v-if="info.isAudioOnly == false" :title="showVideo? 'Audio Only' : 'Video (if available)'" @click="showVideo = !showVideo" style="cursor: pointer;" color="#ffffff">{{ !showVideo? 'mdi-youtube-tv' : 'mdi-ipod'}}</v-icon>
     </div>
     <div style="border: 0px solid white; width: 100%; height: 28vh; display: flex; align-items: start;">
-        <div class="imgcont" :style="{width: showVideo?'50%': '25%'}">
-            <div v-if="!showVideo" style="margin-right: 3%; position: relative; overflow: hidden; height: 150px; width: 150px; border: 0px solid white; border-radius: 15px;">
+        <div class="imgcont" style="width: 50%; border: 0px solid white; display: flex; justify-content: center;">
+            <div v-if="!showVideo" style="margin-right: 3%; position: relative; overflow: hidden; height: 100%; aspect-ratio: 1/1; border: 0px solid white;">
               <transition name="fade" mode="out-in">
-                <v-skeleton-loader v-if="isLoading || !info?.thumbnails?.standard?.url" color="#80808027" type="card"></v-skeleton-loader>
+                <v-skeleton-loader v-if="isLoading || !info?.thumbnails?.standard?.url || !info.stats" color="#80808027" type="card"></v-skeleton-loader>
                 <img v-else class="thumbnail" :src="info?.thumbnails?.standard?.url" alt="">
               </transition>
             </div>
         </div>
         <div class="infocont">
           <transition name="fade" mode="out-in">
-              <v-skeleton-loader  v-if="isLoading || !info?.title" style="width: 50%" height="150px" color="#80808027" type="article"></v-skeleton-loader>
+              <v-skeleton-loader  v-if="isLoading || !info?.stats" style="width: 100%" height="150px" color="#80808027" type="article"></v-skeleton-loader>
               <div v-else class="info">
                   <p v-if="info.title" style="width: 25vw; font-weight: bold; color: #ffffff; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;">{{ info?.title}}</p>
-                  <p v-if="info.artist" style="color: #ffffff; font-size: small;">{{info.artist?.name || info?.artist}}</p>
-                  <p v-if="info?.stats?.viewCount" style="font-size: small"><v-icon color="#fff" size="small">mdi-calendar-outline</v-icon> {{ new Date(info?.publishedAt).toLocaleDateString() }}</p>
-                  <p v-if="info?.stats?.likeCount" style="font-size: small"><v-icon color="#fff" size="small">mdi-heart-multiple</v-icon> {{ formatNumber(info?.stats?.likeCount) }}</p>
-                  <p v-if="info?.stats?.viewCount" style="font-size: small"><v-icon color="#fff" size="small">mdi-eye</v-icon> {{ formatNumber(info?.stats?.viewCount) }}</p>
+                  <div v-for="(artist, index) in info.artist" :key="index">
+                    <p v-if="info.artist" style="color: #ffffff; font-size: small;">{{artist?.name}}</p>
+                  </div>
+                  <transition name="fade" mode="out-in">
+                    <p v-if="info?.stats?.viewCount" style="font-size: small"><v-icon color="#fff" size="small">mdi-calendar-outline</v-icon> {{ new Date(info?.publishedAt).toLocaleDateString() }}</p>
+                  </transition>
+                  <transition name="fade" mode="out-in">
+                    <p v-if="info?.stats?.likeCount" style="font-size: small"><v-icon color="#fff" size="small">mdi-heart-multiple</v-icon> {{ formatNumber(info?.stats?.likeCount) }}</p>
+                  </transition>
+                  <transition name="fade" mode="out-in">
+                    <p v-if="info?.stats?.viewCount" style="font-size: small"><v-icon color="#fff" size="small">mdi-eye</v-icon> {{ formatNumber(info?.stats?.viewCount) }}</p>
+                  </transition>
               </div>            
           </transition>
         </div>
@@ -113,37 +121,30 @@ export default {
         }
     },
   },
+  activated(){
+    this.showVideo = !this.info.isAudioOnly;
+  },
   mounted() {
     if (this.videoId){
-        // this.loadInfo(this.videoId).then((info) => {
           if (!this.queue.length){
             EventBus.emit('play_track', { id: this.videoId});
           }
-        // }).catch((err) => {
-        //     console.log(err);
-        //     this.toast.error('Something went wrong while getting the track')
-        // });
     } else {
         this.toast.error('Track not found');
         this.$router.push({ name: 'home' });
     }
-    // EventBus.on('fetchInfo', () => {
-    //   if (!this.isLoading){
-    //     this.loadInfo(this.videoId);
-    //   }
-    // })
     this.info = this.queue[this.isPlayingIndex] || {};
+    this.showVideo = !this.info.isAudioOnly;
     EventBus.on('info', (info) => {
       if (info.id === this.videoId) {
         this.info = info;
+        this.showVideo = !info.isAudioOnly;
       }
     });
   },
   watch: {
     videoId(newVal) {
       if (newVal) {
-        // this.loadInfo(newVal).then((info) => {
-        //   console.log(this.videoId, this.queue[this.isPlayingIndex], this.isPlayingIndex);
           if (this.info.id !== newVal) {
             this.info = {};
           }
@@ -153,10 +154,6 @@ export default {
           if (this.videoId !== this.queue[this.isPlayingIndex]?.id) {
             EventBus.emit('play_track', { id: newVal});
           }
-          // }).catch((err) => {
-          //     console.log(err);
-          //     this.toast.error('Something went wrong while getting the track')
-          // });
         }
     },
     showVideo(val){
@@ -183,6 +180,7 @@ export default {
   width: 100%; /* Set the width to fill the div */
   object-fit: cover;
   z-index: 1;
+
 }
 
 .info {
@@ -199,6 +197,8 @@ export default {
   border: 0px solid white;
   height: 100%;
   width: 50%;
+  overflow-y: auto;
+  overflow-x: hidden;
 }
 
 .imgcont{

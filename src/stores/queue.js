@@ -3,8 +3,8 @@ import { defineStore } from 'pinia';
 export const useQueueStore = defineStore('queue', {
   state: () => ({
     queue: [],
-    isQueueVisible: false,
-    isLyricsVisible: false,
+    isQueueVisible: true,
+    isLyricsVisible: true,
     isPlayingIndex: 0,
     isPlaying: false,
     player: null,
@@ -36,14 +36,11 @@ export const useQueueStore = defineStore('queue', {
       this.player = player;
     },
     async fetchInfo(id){
-      this.isLoading = true;
       return await fetch(`https://api-dqfspola6q-uc.a.run.app/music/getInfo?id=${id}`).then(async (res) => {
           res = await res.json();
-          this.isLoading = false;
           return res;
         }).catch((err) => {
             console.log(err);
-            this.isLoading = false;
             return {
               error: 'An error occurred while fetching video information.',
               details: err.message

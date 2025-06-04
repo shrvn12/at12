@@ -9,6 +9,7 @@
                     <p v-if="this.$route.name !== 'nowPlaying'" class="ellipse">{{ queue.length? queue[isPlayingIndex]?.title : "" }}</p>
                 </transition>
                     <p style="color: white; font-size: small; margin: 0px; text-align: right; margin-left: auto;">{{`${formatTime(currentTime)} / ${formatTime(duration)}`}}</p>
+                    <v-icon @click="this.$route.name == 'nowPlaying'? goBack() : $router.push(`/playing/${queue[isPlayingIndex].id}`)" style="margin-left: 1%; transition: 0.25s;" :class="this.$route.name == 'nowPlaying'?'rotate' : ''" color="#fff">mdi-chevron-up</v-icon>
                 </div>                
             <v-slider 
                 style="margin:  2px !important; height: 22px;"
@@ -62,10 +63,10 @@
                 ></v-slider>
             </div>
             
-            <v-btn @click="toggleQueue()" icon :ripple="true" title="repeat" base-color="transparent">
+            <v-btn @click="toggleQueue()" icon :ripple="true" title="Queue" base-color="transparent">
                     <v-icon size="default" color="#fff">{{queueStore.isQueueVisible? "mdi-list-box" : "mdi-list-box-outline"}}</v-icon>
             </v-btn>
-            <v-btn icon :ripple="!lyricsDisabled" title="repeat" base-color="transparent">
+            <v-btn icon :ripple="!lyricsDisabled" title="Lyrics" base-color="transparent">
                     <v-icon @click="toggleLyrics()" size="default" color="#fff">{{ queueStore.isLyricsVisible? 'mdi-music-box' : 'mdi-music-box-outline'}}</v-icon>
             </v-btn>
         </div>
@@ -123,13 +124,20 @@ export default {
             shuffleDisabled: true,
             lyricsDisabled: false,
             thumbTimeout: null,
-            showVideo: true,
+            showVideo: false,
             playerReady: false,
             animationFrame: null,
             pendingVideoId: null,
         }
     },
     methods: {
+        goBack() {
+            if(window.history.state && window.history.state.back){
+                this.$router.back();
+            } else{
+                this.$router.push({ name: 'home' });
+            }
+        },
         togglePlayPause() {
             if (!this.player) {
                 return;
@@ -177,7 +185,9 @@ export default {
                 this.pendingVideoId = data.id;
             }
             if (!this.queueStore.queue[this.queueStore.isPlayingIndex].stats){
+                this.queueStore.isLoading = true;
                 this.queueStore.fetchInfo(data.id).then((info) => {
+                    this.queueStore.isLoading = false;
                     if(this.queueStore.isPlayingIndex == 0 && !['10', '1'].includes(info.categoryId)){
                         this.player.destroy();
                         this.toast.error('Cannot play this video');
@@ -188,10 +198,17 @@ export default {
                         this.queueStore.queue[this.queueStore.isPlayingIndex] = info;
                     }
                     EventBus.emit('info', info);
+                    this.showVideo = !info.isAudioOnly;
+                }).catch((err) => {
+                    console.log(err);
+                    this.queueStore.isLoading = false;
+                    this.toast.error('Something went wrong while getting the track');
                 });
             } else {
                 EventBus.emit('info', this.queueStore.queue[this.queueStore.isPlayingIndex]);
+                this.showVideo = !this.queueStore.queue[this.queueStore.isPlayingIndex].isAudioOnly;
             }
+            
         },
         seek() {
             this.player.seekTo(this.currentTime, true);
@@ -239,10 +256,10 @@ export default {
                     this.queueStore.isPlayingIndex = 0; // Loop back to the first track
                 } else{
                     this.queueStore.isPlayingIndex++;
+                    this.play(this.queue[this.queueStore.isPlayingIndex]);
                     if (this.$router.currentRoute?._value?.name == 'nowPlaying') {
                         this.$router.replace(`/playing/${this.queue[this.queueStore.isPlayingIndex].id}`);
                     }
-                    this.play(this.queue[this.queueStore.isPlayingIndex]);
                 }
         },
         playPrev() {
@@ -314,32 +331,6 @@ export default {
                 this.playerLoading = true;
             }
         },
-        //     try {
-        //         console.log(YT);
-        //         this.player = new YT.Player("player", {
-        //             height: "360",
-        //             width: "640",
-        //             videoId: videoId, // Replace with your YouTube video ID
-        //             playerVars: {
-        //                 rel: 0, // Disable related videos
-        //                 controls: 0, // Hide player controls
-        //                 modestbranding: 1, // Minimize YouTube branding
-        //                 disablekb: 1, // Disable keyboard controls
-        //                 fs: 0, // Disable fullscreen option
-        //                 iv_load_policy: 3, // Disable video annotations
-        //                 cc_load_policy: 0, // Disable closed captions
-        //                 autohide: 1, // Hide video controls when not in use
-        //             },
-        //             events: {
-        //                 onReady: this.onPlayerReady,
-        //                 onStateChange: this.onPlayerStateChange,
-        //             },
-        //         });
-        //     } catch (error) {
-        //         console.log('error while creating player');
-        //         console.log(error);
-        //     }
-        // },
         startPlayer(videoId) {
             const initializePlayer = () => {
                 this.player = new YT.Player("player", {
@@ -370,7 +361,6 @@ export default {
                 initializePlayer();
             } else {
                 window.onYouTubeIframeAPIReady = () => {
-                    console.log('YouTube API is ready');
                     initializePlayer();
                 };
             }
@@ -413,7 +403,6 @@ export default {
         })
         EventBus.on('show_video', (val) => {
             this.showVideo = val;
-            console.log('show video', val);
         })
         EventBus.on('jumpToTime', (time) => {
             this.seekToTime(time);
@@ -521,6 +510,10 @@ html{
     font-size: small;
     color: white;
     width: 20vw;
+}
+
+.rotate {
+    transform: rotate(180deg);
 }
 
 @media (max-width: 600px) {

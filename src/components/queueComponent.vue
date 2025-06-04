@@ -1,6 +1,5 @@
 <template>
   <div
-    v-if="queueStore.isQueueVisible"
     ref="queueContainer"
     style="position: absolute; width: 20%; height: 100vh; overflow-y: auto; scrollbar-width: none; border: 0px solid; -ms-overflow-style: none; z-index: 1;"
   >
@@ -28,7 +27,7 @@
           >
             <v-list-item-content>
               <v-list-item-title>{{ song.title }}</v-list-item-title>
-              <v-list-item-subtitle>{{ song.channel || song.artist }}</v-list-item-subtitle>
+              <v-list-item-subtitle>{{ song.channel || song.channelTitle }}</v-list-item-subtitle>
             </v-list-item-content>
 
               <v-icon
