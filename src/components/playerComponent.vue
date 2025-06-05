@@ -374,7 +374,7 @@ export default {
             )
             .catch((err) => {
                 console.log(err);
-                this.toast.err('Something went wrong while adding to queue')
+                this.toast.error('Something went wrong while adding to queue')
             });
         }
     },

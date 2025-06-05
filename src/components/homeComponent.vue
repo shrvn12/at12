@@ -26,6 +26,7 @@
     </div>
 </template>
 <script>
+import { useToast } from 'vue-toastification';
 import { useQueueStore } from '../stores/queue';
 import { EventBus } from '../eventBus';
 
@@ -37,6 +38,7 @@ export default {
     },
     data(){
         return{
+            toast: useToast(),
             genres: ['Romance', 'Workout', 'Feel good', 'Party', 'Relax', 'Energize', 'commute', 'sleep', 'sad', 'Focus'],
             selectedGenre: '',
             songs: [],
