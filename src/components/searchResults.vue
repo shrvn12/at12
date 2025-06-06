@@ -6,7 +6,7 @@
         <transition name="fade" mode="out-in">
             <div v-if="!isLoading" style="border: 0px solid violet; overflow-y: scroll;" >
                 <div v-for="(track, index) in searchRes" :key="index" style="display: flex; border: 0px solid white; width: 100%; cursor: pointer;" @click="play(track)">
-                    <div style="width: 15%; height:10vh; border: 0px solid pink; display: flex; justify-content: center; align-items: center;">
+                    <div class="thumb_cont">
                         <div class="img-cont">
                             <img class="thumbnail" :src="track.thumbnails.high.url" alt="">
                         </div>
@@ -152,5 +152,21 @@ export default {
 
 .test{
     color: #80808027;
+}
+
+.thumb_cont{
+    width: 15%;
+    height:10vh;
+    border: 0px solid pink;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+}
+
+@media (max-width: 675px) {
+    .thumb_cont {
+        height: auto;
+        margin-top: 2%;
+    }
 }
 </style>

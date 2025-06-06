@@ -1,7 +1,8 @@
 <template>
   <div
     ref="queueContainer"
-    style="position: absolute; width: 20%; height: 100vh; overflow-y: auto; scrollbar-width: none; border: 0px solid; -ms-overflow-style: none; z-index: 1;"
+    class="queueContainer"
+    style=""
   >
     <v-container>
       <div
@@ -97,13 +98,41 @@ export default {
       setTimeout(() => {
         this.scrollToCurrentSong();
       }, 300)
+      EventBus.on('scrollToCurrentSong', () => {
+        setTimeout(() => {
+          this.scrollToCurrentSong();
+        }, 300)
+      });
     },
     watch: {
       'queueStore.isPlayingIndex'(val) {
         if (val !== undefined) {
           this.scrollToCurrentSong();
         }
-      }
+      },
     }
 }
 </script>
+
+<style>
+.queueContainer{
+  position: absolute;
+  width: 20%;
+  height: 100vh;
+  overflow-y: auto;
+  scrollbar-width: none;
+  border: 0px solid;
+  -ms-overflow-style: none;
+  z-index: 1;
+}
+
+@media screen and (max-width: 675px) {
+  .queueContainer {
+    width: 100%;
+    height: 80vh;
+    z-index: 1;
+    background-color: #000;
+  }
+  
+}
+</style>

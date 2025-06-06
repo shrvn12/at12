@@ -1,7 +1,8 @@
 <template>
     <div
         ref="lyricContainer"
-        style="border: 0px solid white; position: absolute; right: 0; width: 20%; height: 100vh; overflow-y: auto; scrollbar-width: none; -ms-overflow-style: none;"
+        class="lyricContainer"
+        style=""
     >
     <div style="margin-top: 40vh;" v-if="!info.lyrics">
         <span v-if="queueStore.isLoading" class="loader"></span>
@@ -140,7 +141,6 @@ export default {
     this.info = this.queueStore.queue[this.queueStore.isPlayingIndex];
 
     EventBus.on('info', (info) => {
-        console.log(info);
         this.currentLyricIndex = null; // Reset current lyric index on new info
         this.info = info;
         if (info.lyrics) {
@@ -227,7 +227,27 @@ export default {
     100% {
   box-shadow: 2px -8px rgba(255, 255, 255, 0), 12px -5px rgba(255, 255, 255, 0), 20px -5px rgba(255, 255, 255, 0);
 }
+}
+
+.lyricContainer{
+  border: 0px solid white;
+  position: absolute;
+  right: 0;
+  width: 20%;
+  height: 100vh;
+  overflow-y: auto;
+  scrollbar-width: none;
+  -ms-overflow-style: none;
+  background-color: black;
+}
+
+@media screen and (max-width: 675px) {
+  .lyricContainer {
+    width: 100%;
+    height: 80vh;
+    z-index: 1;
   }
+}
       
     
 </style>

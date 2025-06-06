@@ -1,14 +1,11 @@
 <template>
 <div id="cont">
-    <!-- <div id="playerView" style="position: absolute; border: 1px solid white; width: 90%; height: 75%; top: 0; margin-top: 5%;"></div> -->
-    <div style=" width: 100%; height: 10%; display: flex;">
+    <div style="width: 100%; height: 10%; display: flex; justify-content: space-between;">
         <v-icon style="cursor: pointer;" color="#ffffff" @click="goBack()">mdi-arrow-left</v-icon>
-    </div>
-     <div style=" width: 100%; height: 10%; display: flex; justify-content: right;">
         <v-icon v-if="info.isAudioOnly == false" :title="showVideo? 'Audio Only' : 'Video (if available)'" @click="showVideo = !showVideo" style="cursor: pointer;" color="#ffffff">{{ !showVideo? 'mdi-youtube-tv' : 'mdi-ipod'}}</v-icon>
     </div>
-    <div style="border: 0px solid white; width: 100%; height: 28vh; display: flex; align-items: start;">
-        <div class="imgcont" style="width: 50%; border: 0px solid white; display: flex; justify-content: center;">
+    <div class="playerCont">
+        <div class="imgcont">
             <div v-if="!showVideo" style="margin-right: 3%; position: relative; overflow: hidden; height: 100%; aspect-ratio: 1/1; border: 0px solid white;">
               <transition name="fade" mode="out-in">
                 <v-skeleton-loader v-if="isLoading || !info?.thumbnails?.standard?.url || !info.stats" color="#80808027" type="card"></v-skeleton-loader>
@@ -205,5 +202,52 @@ export default {
   width: 25%;
   height: 100%; 
   border: 0px solid white;
+}
+
+.playerCont{
+  border: 0px solid white;
+  width: 100%;
+  height: 28vh;
+  display: flex; 
+  align-items: start;
+  margin-top: 5%;
+}
+
+.playerCont>div:nth-child(1){
+  width: 50%;
+  border: 0px solid white;
+  display: flex;
+  justify-content: center;
+}
+
+.audioVideoToggle{
+  position: absolute;
+  top: 0;
+  right: 0;
+  z-index: 10;
+}
+
+@media (max-width: 675px) {
+  #cont{
+      width: 100%;
+      height: 60vh;
+      border: 0px solid white;
+      position: relative;
+  }
+  .playerCont{
+    height: 40vh;
+  }
+  .playerCont>div:nth-child(1){
+    width: 65%;
+    height: 50%;
+    display: flex;
+    justify-content: center;
+  }
+  .playerCont>div:nth-child(2){
+    width: 35%;
+    height: 50%;
+    overflow-x: auto;
+    overflow-y: hidden;
+  }
 }
 </style>

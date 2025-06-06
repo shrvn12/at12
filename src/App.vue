@@ -1,12 +1,12 @@
 <template>
-<div style="border: 0px solid white; height: 100vh; display: flex;">
-  <div style="border: 0px solid white; width: 25%; height: 100vh;">
+<div style="border: 0px solid white; height: 100vh; display: flex; position: relative;">
+  <div class="queueCont">
     <transition name="slide">
       <QueueComponent v-if="queueStore.isQueueVisible && queueStore.queue.length"></QueueComponent>
     </transition>
   </div>
-  <div style="border: 0px solid white; width: 50%; height: 100vh;">
-    <div style="border: 0px solid yellow; height: 45vh; width: 100%;">
+  <div class="centerCont">
+    <div class="centerTopCont">
       <div style="border: 0px solid green; height: 75%; display: flex; align-items: center; justify-content: center;">
         <h1 id="heading" style="margin-top: 5%;">
           <span style="width: 100%;">
@@ -47,16 +47,16 @@
         ></v-text-field>
       </div>
     </div>
-    <div :class="queue.length !== 0 ? 'fadeBottom' : ''"
-     :style="{ border: '0px solid yellow', height: queue.length !== 0 ? '43vh' : '55vh', width: '100%' }">
+    <div :class="queue.length !== 0 ? 'withplayer' : 'withoutplayer'" style="width: 100%;"
+     >
      <router-view v-slot="{ Component }">
-            <keep-alive max="5">
-              <component :is="Component" :key="$route.name" />
-            </keep-alive>
-          </router-view>      
+        <keep-alive max="5">
+          <component :is="Component" :key="$route.name" />
+        </keep-alive>
+      </router-view>      
     </div>
   </div>
-  <div style="border: 0px solid white; width: 25%; height: 100vh;">
+  <div class="lrcCont">
      <transition name="slideRight">
       <lyricsComponent v-if="queueStore.isLyricsVisible  && queueStore.queue.length"></lyricsComponent>
     </transition>
@@ -79,7 +79,6 @@ import { useToast } from 'vue-toastification';
 import { RouterView } from 'vue-router';
 import QueueComponent from './components/queueComponent.vue';
 import lyricsComponent from './components/lyricsComponent.vue';
-import mobileBlocker from './components/mobileBlocker.vue';
 
 export default {
   name: 'App',
@@ -88,7 +87,6 @@ export default {
     RouterView,
     QueueComponent,
     lyricsComponent,
-    mobileBlocker
   },
   setup() {
     // Access the store in setup (reactive by default)
@@ -141,6 +139,10 @@ export default {
       EventBus.on('isPlaying', (val) => {
         this.isPlaying = val;
       })
+      if (window.innerWidth < 675) {
+        this.queueStore.isQueueVisible = false;
+        this.queueStore.isLyricsVisible = false;
+      }
   }
 }
 
@@ -215,38 +217,16 @@ body{
   object-fit: cover;
 }
 
-@media (max-width: 600px) {
-    #heading{
-      margin-bottom: 2%;
-      font-family: 'Courier New', monospace;
-    }
-    svg{
-      width: 100%;
-    }
-   .head{
-    font-size: 10px;
-    font-weight: 100;
-    stroke-width: 1;
-    margin: auto;
-   }
-   .head_s{
-    margin: auto;
-   }
-  .input{
-    width: 90%;
-  }
-  .details{
-    margin-top: 5%;
-  }
-  .details>p {
-    text-align: center;
-    max-width: 90%;
-    text-overflow: ellipsis;
-    font-size: 90%;
-  }
-  .details>p:nth-child(1) {
-    font-size: 150%;
-  }
+.centerCont{
+  border: 0px solid white;
+  width: 50%;
+  height: 100vh;
+}
+
+.centerTopCont{
+  border:0px solid yellow;
+  height: 45vh;
+  width: 100%;
 }
 
 .head {
@@ -284,9 +264,14 @@ body{
   
 }
 
-.fadeBottom{
-    mask-image: linear-gradient(to top, rgba(0, 0, 0, 0) 0%, rgba(0, 0, 0, 1) 20%);
+.withplayer {
+  height: 43vh;
+  mask-image: linear-gradient(to top, rgba(0, 0, 0, 0) 0%, rgba(0, 0, 0, 1) 20%);
   -webkit-mask-image: linear-gradient(to top, rgba(0, 0, 0, 0) 0%, rgba(0, 0, 0, 1) 20%);
+}
+
+.withoutplayer {
+  height: 55vh;
 }
 
 .details {
@@ -364,6 +349,48 @@ body{
 }
 .fade-enter-to, .fade-leave-from {
   opacity: 1;
+}
+
+.queueCont{
+  border: 0px solid white;
+  width: 25%;
+  height: 100vh;
+}
+
+.lrcCont{
+  border: 0px solid white;
+  width: 25%;
+  height: 100vh;
+}
+
+@media (max-width: 675px) {
+  svg{
+    width: 100%;
+  }
+
+  .head_s{
+    margin: auto;
+  }
+  .centerCont{
+    width: 100%;
+  }
+  .centerTopCont{
+    height: 30vh;
+  }
+  .withplayer{
+    height: 50vh;
+  }
+  .withoutplayer{
+    height: 70vh;
+  }
+  .queueCont{
+    position: absolute;
+    width: 100%;
+  }
+  .lrcCont{
+    position: absolute;
+    width: 100%;
+  }
 }
 
 </style>

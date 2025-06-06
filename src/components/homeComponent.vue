@@ -6,10 +6,10 @@
            </div>
         </div>
         <Transition name="fade" mode="in-out">
-            <div v-if="isLoading" style="display: flex; justify-content: center; align-items: center; height: 45vh;">
+            <div v-if="isLoading" style="display: flex; justify-content: center; align-items: center; height: 45vh;" >
                 <img src="../assets/loading.gif" alt="">
             </div>
-            <div v-else :style="{height: queueStore.queue.length > 0 ? '35vh' : '45vh'}">
+            <div v-else :class="queueStore.queue.length !== 0 ? 'withplayer' : 'withoutplayer'">
                 <div v-for="(song, index) in songs" :key="index" @click="play(song)" @mouseover="hoveredIndex = index" @mouseleave="hoveredIndex = null">
                     <div style="position: relative; height: 85%; width: 100%; overflow: hidden; border-radius: 15px ;">
                         <img class="thumbnail" :src="song.thumbnails.high.url" alt="">
@@ -19,7 +19,7 @@
                             </v-btn>
                         </div>
                     </div>
-                    <p class="ellipse">{{ (song.title).split("|")[0] }}</p>
+                    <p class="ellipse">{{(song.title).split("|")[0]}}</p>
                 </div>
             </div>            
         </Transition>
@@ -144,13 +144,11 @@ export default {
     font-size: 90%;
 }
 
-.cont>div:nth-child(2){
+.cont > div:nth-child(2) {
     width: 100%;
-    /* height: 45vh; */
     margin-top: 1%;
-    /* border: 1px solid red; */
     display: grid;
-    grid-template-columns: repeat(5, 1fr);
+    grid-template-columns: repeat(auto-fit, minmax(100px, 1fr));
     gap: 3vh;
     overflow-y: auto;
     scrollbar-width: none;
@@ -193,10 +191,11 @@ export default {
     text-overflow: ellipsis;
     text-align: left;
     font-size:70%;
-    /* color: white; */
-    width: 15vh;
+    color: rgba(255, 255, 255, 0.678);
+    width: 7vw;
     text-align: center;
     margin: auto;
+    border: 0px solid white;
 }
 
 .hplay{
@@ -227,5 +226,39 @@ export default {
 }
 .fadeFaster-enter-to, .fade-leave-from {
   opacity: 1;
+}
+
+.withplayer {
+    height: 35vh;
+}
+
+.withoutplayer {
+    height: 45vh;
+}
+
+@media (max-width: 675px) {
+    .cont>div:nth-child(2){
+        grid-template-columns: repeat(auto-fit, minmax(70px, 1fr));
+        padding: 2%;
+        gap: 3vw;
+    }
+    .cont>div:nth-child(1)>div{
+        padding: 0.3vw 1.3vw;
+    }
+    .cont>div:nth-child(1){
+        height: auto;
+    }
+    ::-webkit-scrollbar {
+        height: 4px;
+    }
+    .withoutplayer {
+        height: 70vh;
+    }
+    .withplayer {
+        height: 60vh;
+    }
+    .ellipse{
+        width: 15vw;
+    }
 }
 </style>

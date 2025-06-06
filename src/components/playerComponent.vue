@@ -1,8 +1,8 @@
 <template>
     <div id="cont">
-            <div v-show="showVideo && this.$route.name == 'nowPlaying'">
-                <div id="player" style="height: 30vh; width: 90%;"></div>
-            </div>
+        <div v-show="showVideo && this.$route.name == 'nowPlaying'">
+            <div id="player" style="height: 30vh; width: 90%;"></div>
+        </div>
         <div style="border: 0px solid green; width: 100%; height: min-content; margin-top: -5px;">
             <div style=" z-index: 1;cursor: pointer; border: 0px solid white; position: absolute; width: 100%; margin-top: -1%; height: min-content; display: flex; justify-content: space-between; align-items: center;" @click="() => { $router.push(`/playing/${queue[isPlayingIndex].id}`) }">
                 <transition name="fade" mode="out-in">
@@ -250,6 +250,7 @@ export default {
                                 if (this.$router.currentRoute?._value?.name == 'nowPlaying') {
                                     this.$router.replace(`/playing/${this.queue[this.queueStore.isPlayingIndex].id}`);
                                 }
+                                EventBus.emit('scrollToCurrentSong');
                             }
                         });
                     }
@@ -516,16 +517,15 @@ html{
     transform: rotate(180deg);
 }
 
-@media (max-width: 600px) {
-
-    #cont>div:nth-child(1),
-    #cont>div:nth-child(3) {
-        display: none;
+@media (max-width: 675px) {
+    #cont{
+        width: 100%;
     }
-
-    #cont>div:nth-child(2) {
-        width: 95%;
-        margin: auto;
-    }
+    #cont>div:nth-child(1){
+    position: absolute;
+    width: 65%;
+    top: -45vh;
+    border: 0px solid red;
+}
 }
 </style>
