@@ -1,6 +1,6 @@
 <template>
 <div style="border: 0px solid white; height: 100vh; display: flex; position: relative;">
-  <div class="queueCont">
+  <div :class="queueStore.isQueueVisible? 'queueCont': 'hqueueCont'">
     <transition name="slide">
       <QueueComponent v-if="queueStore.isQueueVisible && queueStore.queue.length"></QueueComponent>
     </transition>
@@ -56,7 +56,7 @@
       </router-view>      
     </div>
   </div>
-  <div class="lrcCont">
+  <div :class="queueStore.isLyricsVisible ? 'lrcCont' :'hlrcCont'">
      <transition name="slideRight">
       <lyricsComponent v-if="queueStore.isLyricsVisible  && queueStore.queue.length"></lyricsComponent>
     </transition>
@@ -357,11 +357,23 @@ body{
   height: 100vh;
 }
 
+  .hqueueCont{
+    border: 0px solid white;
+    width: 25%;
+    height: 100vh;
+  }
+
 .lrcCont{
   border: 0px solid white;
   width: 25%;
   height: 100vh;
 }
+
+ .hlrcCont{
+    border: 0px solid white;
+    width: 25%;
+    height: 100vh;
+  }
 
 @media (max-width: 675px) {
   svg{
@@ -390,6 +402,12 @@ body{
   .lrcCont{
     position: absolute;
     width: 100%;
+  }
+  .hlrcCont{
+    width: 0%;
+  }
+  .hqueueCont{
+    width: 0%;
   }
 }
 
