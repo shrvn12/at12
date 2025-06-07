@@ -506,11 +506,10 @@ html{
     white-space: nowrap;
     overflow: hidden;
     text-overflow: ellipsis;
-    width: 100%;
+    width: 70%;
     text-align: left;
     font-size: small;
     color: white;
-    width: 20vw;
 }
 
 .rotate {

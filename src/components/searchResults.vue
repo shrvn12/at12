@@ -13,7 +13,7 @@
                     </div>
                     <div class="info" style="width: 85%; border: 0px solid pink; display: flex; align-items: center;">
                         <div style="text-align: left; max-width: 100%;">
-                            <p :class="this.queue.queue[this.queue.isPlayingIndex]?.id == track.id ? 'highlight' : ''" style="white-space: nowrap; overflow: hidden; text-overflow: ellipsis; width: 20vw;">{{track.title}}</p>
+                            <p :class="this.queue.queue[this.queue.isPlayingIndex]?.id == track.id ? 'highlight' : ''" style="white-space: nowrap; overflow: hidden; text-overflow: ellipsis; width: 100%;">{{track.title}}</p>
                             <p style="color: grey; font-size: small;">{{ track.artist.name }}</p>
                         </div>
                     </div>
