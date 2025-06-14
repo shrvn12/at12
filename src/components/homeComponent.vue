@@ -1,5 +1,5 @@
 <template>
-    <div class="cont">
+    <div class="cont" :style="{'padding-bottom': queueStore.queue.length ? '0px' : '10%'}">
         <div>
            <div v-for="(genre, index) in genres" :key="index" :class="genre == selectedGenre? 'selectedGenre' : '' " @click="selectedGenre == genre? selectedGenre = '' : selectedGenre = genre">
                <p>{{ genre }}</p>

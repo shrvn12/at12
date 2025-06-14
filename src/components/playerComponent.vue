@@ -67,7 +67,7 @@
                     <v-icon size="default" color="#fff">{{queueStore.isQueueVisible? "mdi-list-box" : "mdi-list-box-outline"}}</v-icon>
             </v-btn>
             <v-btn icon :ripple="!lyricsDisabled" title="Lyrics" base-color="transparent">
-                    <v-icon @click="toggleLyrics()" size="default" color="#fff">{{ queueStore.isLyricsVisible? 'mdi-music-box' : 'mdi-music-box-outline'}}</v-icon>
+                <v-icon @click="toggleLyrics()" size="default" color="#fff">{{ queueStore.isLyricsVisible? 'mdi-music-box' : 'mdi-music-box-outline'}}</v-icon>
             </v-btn>
         </div>
     </div>
@@ -171,6 +171,9 @@ export default {
             }
         },
         async play(data) {
+            if (data.snippet?.resourceId?.videoId){
+                data.id = data.snippet?.resourceId?.videoId
+            }
             if (!data || !data.id) return;
 
             this.videoId = data.id;
@@ -188,12 +191,12 @@ export default {
                 this.queueStore.isLoading = true;
                 this.queueStore.fetchInfo(data.id).then((info) => {
                     this.queueStore.isLoading = false;
-                    if(this.queueStore.isPlayingIndex == 0 && !['10', '1'].includes(info.categoryId)){
-                        this.player.destroy();
-                        this.toast.error('Cannot play this video');
-                        this.$router.replace('/');
-                        return;
-                    }
+                    // if(this.queueStore.isPlayingIndex == 0 && !['10', '1'].includes(info.categoryId)){
+                    //     this.player.destroy();
+                    //     this.toast.error('Cannot play this video');
+                    //     this.$router.replace('/');
+                    //     return;
+                    // }
                     if (this.queueStore.queue[this.queueStore.isPlayingIndex].id == info.id) {
                         this.queueStore.queue[this.queueStore.isPlayingIndex] = info;
                     }
@@ -239,6 +242,15 @@ export default {
                     return;
                 }
                 this.lastKeyTime = currentTime;
+                console.log(this.queueStore.isPlayingIndex, this.queueStore.playlist, this.queueStore.queue);
+                if (this.queueStore.playlist && this.queueStore.isPlayingIndex == (this.queueStore.queue.length-1)){
+                    this.queueStore.isPlayingIndex = 0;
+                    this.play(this.queue[this.queueStore.isPlayingIndex]);
+                    if (this.$router.currentRoute?._value?.name == 'nowPlaying') {
+                        this.$router.replace(`/playing/${this.queue[this.queueStore.isPlayingIndex].id}`);
+                    }
+                    return;
+                }
                 if ((this.queueStore.isPlayingIndex+1) >= this.queue.length) {
                     const lastItemId = this.queue[this.queue.length - 1]?.id;
                     if (lastItemId) {
@@ -382,11 +394,24 @@ export default {
     mounted() {
         document.addEventListener('keydown', this.handleKeyDown);
         EventBus.on('play_track', (track) => {
+            track = JSON.parse(JSON.stringify(track));
             this.queueStore.isPlayingIndex = 0;
             this.queueStore.queue = [track];
+            this.queueStore.playlist = null;
             this.play(track);
         });
+        EventBus.on('play_playlist', (args) => {
+            args = JSON.parse(JSON.stringify(args));
+            this.queueStore.isPlayingIndex = args[1];
+            this.queueStore.queue = args[2];
+            this.queueStore.playlist = args[3];
+            this.play(args[0]);
+        });
         EventBus.on('onlyPlay', (track) => {
+            track = JSON.parse(JSON.stringify(track));
+            if (!track.id){
+                track.id = track.videoId;
+            }
             this.play(track);
         });
         EventBus.on('pause', () => {

@@ -27,8 +27,8 @@
             @click="play(song, index)"
           >
             <v-list-item-content>
-              <v-list-item-title>{{ song.title }}</v-list-item-title>
-              <v-list-item-subtitle>{{ song.channel || song.channelTitle }}</v-list-item-subtitle>
+              <v-list-item-title>{{ song.title || song.snippet?.title }}</v-list-item-title>
+              <v-list-item-subtitle>{{ song.channel || song.channelTitle || song.artist?.name || song.snippet?.videoOwnerChannelTitle }}</v-list-item-subtitle>
             </v-list-item-content>
 
               <v-icon
@@ -68,8 +68,11 @@ export default {
       },
       play(track, index){
         this.queueStore.isPlayingIndex = index;
+        if (track.snippet?.resourceId?.videoId){
+          track.id = track.snippet.resourceId.videoId
+        }
           EventBus.emit('onlyPlay', track);
-          this.$router.replace(`/playing/${track.id}`);
+          // this.$router.replace(`/playing/${track.id}`);
           this.scrollToCurrentSong()
       },
       scrollToCurrentSong() {

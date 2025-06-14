@@ -19,7 +19,7 @@
               <div v-else class="info">
                   <p v-if="info.title" style="width: 25vw; font-weight: bold; color: #ffffff; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;">{{ info?.title}}</p>
                   <div v-for="(artist, index) in info.artist" :key="index">
-                    <p v-if="info.artist" style="color: #ffffff; font-size: small;">{{artist?.name}}</p>
+                    <p v-if="info.artist" style="text-decoration: underline; cursor: pointer; color: #ffffff; font-size: small;" @click="$router.push(`/artist/${artist.id}`)">{{artist?.name}}</p>
                   </div>
                   <transition name="fade" mode="out-in">
                     <p v-if="info?.stats?.viewCount" style="font-size: small"><v-icon color="#fff" size="small">mdi-calendar-outline</v-icon> {{ new Date(info?.publishedAt).toLocaleDateString() }}</p>

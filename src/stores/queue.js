@@ -10,6 +10,7 @@ export const useQueueStore = defineStore('queue', {
     player: null,
     isPaused: false,
     isLoading: false,
+    playlist: null
   }),
   actions: {
     addStats(index, stats) {
