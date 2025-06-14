@@ -72,7 +72,9 @@ export default {
           track.id = track.snippet.resourceId.videoId
         }
           EventBus.emit('onlyPlay', track);
-          // this.$router.replace(`/playing/${track.id}`);
+          if (this.$router.currentRoute?._value?.name == 'nowPlaying') {
+              this.$router.replace(`/playing/${track.id}`);
+          }
           this.scrollToCurrentSong()
       },
       scrollToCurrentSong() {
