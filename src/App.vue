@@ -1,5 +1,6 @@
 <template>
 <div style="border: 0px solid white; height: 100vh; display: flex; position: relative;">
+  <BackgroundComponent></BackgroundComponent>
   <div :class="queueStore.isQueueVisible? 'queueCont': 'hqueueCont'">
     <transition name="slide">
       <QueueComponent v-if="queueStore.isQueueVisible && queueStore.queue.length"></QueueComponent>
@@ -7,7 +8,7 @@
   </div>
   <div class="centerCont">
     <div class="centerTopCont">
-      <div style="border: 0px solid green; height: 75%; display: flex; align-items: center; justify-content: center;">
+      <div style="border: 0px solid green; height: 75%; display: flex; align-items: center; justify-content: center; z-index: 1;">
         <h1 id="heading" style="margin-top: 5%;">
           <span style="width: 100%;">
             <svg :class="isPlaying ? 'head' : 'head_s'" style="width: 100%; border: 0px solid; height: 20vh;">
@@ -79,6 +80,7 @@ import { useToast } from 'vue-toastification';
 import { RouterView } from 'vue-router';
 import QueueComponent from './components/queueComponent.vue';
 import lyricsComponent from './components/lyricsComponent.vue';
+import BackgroundComponent from './components/backgroundComponent.vue';
 
 export default {
   name: 'App',
@@ -87,6 +89,7 @@ export default {
     RouterView,
     QueueComponent,
     lyricsComponent,
+    BackgroundComponent
   },
   setup() {
     // Access the store in setup (reactive by default)
@@ -221,6 +224,7 @@ body{
   border: 0px solid white;
   width: 50%;
   height: 100vh;
+  z-index: 1;
 }
 
 .centerTopCont{

@@ -13,7 +13,9 @@
                         <p :class="this.queue.queue[this.queue.isPlayingIndex]?.id == searchRes[0].videoId ? 'highlight' : 'info'" v-if="searchRes.length" style="font-size: 200%; font-weight: bold; text-align: left;">{{ searchRes[0].name }}</p>
                         <p v-if="searchRes.length" style="color: white; font-size: 100%; text-align: left; width: min-content; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;" @click.stop="$router.push(`/artist/${searchRes[0].artist.artistId}`)">{{ searchRes[0].artist.name }}</p>
                         <br>
-                        <MusicBar v-if="this.queue.queue[this.queue.isPlayingIndex]?.id == searchRes[0].videoId && !this.queueStore.isLoading"></MusicBar>
+                        <div style="height: 5vh;">
+                            <MusicBar v-if="this.queue.queue[this.queue.isPlayingIndex]?.id == searchRes[0].videoId && !this.queueStore.isLoading"></MusicBar>
+                        </div>
 
                     </div>
                     <div style="width: 15%; margin-left: auto; display: flex; justify-content: right;">
@@ -285,10 +287,6 @@ export default {
 
 .listItem:hover {
   background-color: #d3d3d317;
-}
-
-.firstresult:hover{
-    border: 2px solid #fc2c55;
 }
 
 @media (max-width: 675px) {
