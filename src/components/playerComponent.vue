@@ -473,6 +473,7 @@ html{
     background-color: #010101;
     border: 0px solid red;
     height: 10vh;
+    z-index: 1;
 }
 
 #cont>div:nth-child(1){
