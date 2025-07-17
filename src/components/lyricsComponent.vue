@@ -238,7 +238,6 @@ export default {
   overflow-y: auto;
   scrollbar-width: none;
   -ms-overflow-style: none;
-  background-color: black;
 }
 
 @media screen and (max-width: 675px) {
