@@ -241,7 +241,7 @@ export default {
             if (Math.random() > 0.5) { // 70% chance to show
                 createShootingStar();
             }
-        }, 3000);
+        }, 5000);
     }
 }
 
