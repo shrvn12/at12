@@ -137,10 +137,10 @@
                         <div
                         v-for="(artist, index) in artists"
                         :key="index"
-                        style="flex: 0 0 auto; width: 10vw; aspect-ratio: 1 / 1;"
+                        style="flex: 0 0 auto; width: 10vw; aspect-ratio: 1 / 1.1;"
                         @click="$router.push(`/artist/${artist.id}`)"
                         >
-                        <div style="position: relative; height: 100%; width: 100%; overflow: hidden; border-radius: 15px; cursor: pointer;">
+                        <div style="position: relative; height: 90%; width: 100%; overflow: hidden; border-radius: 15px; cursor: pointer;">
                             <img
                             class="thumbnail"
                             :src="artist.thumbnails && artist.thumbnails[1]?.url"
@@ -148,7 +148,7 @@
                             style="width: 100%; height: 100%; object-fit: cover;"
                             >
                         </div>
-                        <p style="color: white;">{{ artist.name}}</p>
+                        <p style="color: white; font-size: small;">{{ artist.name}}</p>
                         </div>
                     </div>
                 </div>
