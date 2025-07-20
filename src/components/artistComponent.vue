@@ -7,9 +7,14 @@
           <v-icon style="cursor: pointer;" color="#ffffff" @click="goBack()">mdi-arrow-left</v-icon>
       </div>
       <div style="border: 0px solid green; display: flex;">
-        <div class="faded" style="width: 50%;">
-          <img style="width: 100%; display: block;" :src="info.channelInfo?.snippet?.thumbnails && info.channelInfo?.snippet?.thumbnails.high.url" alt="">
+        <div class="faded" style="width: 50%; overflow: hidden; position: relative;">
+          <img
+            :src="(info?.thumbnails[0]?.url) || (info?.additionalInfo?.thumbnails[0]?.url) || (info.channelInfo?.snippet?.thumbnails && info.channelInfo?.snippet?.thumbnails.high.url)"
+            alt=""
+            style="width: 100%; height: 100%; object-fit: cover; display: block;"
+          />
         </div>
+
         <div style="width: 50%; margin-left: 5%;">
           <p style=" text-align: left; border: 0px solid white; font-size: 250%; font-weight: bold; color: white;">{{ info.name }}</p>
           <p style=" text-align: left; border: 1px solid #fc2c55; font-size: 100%; font-weight: 300; color: white; width: fit-content; padding: 1% 3%; border-radius: 20px; margin-bottom: 2%;">
