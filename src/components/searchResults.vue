@@ -11,7 +11,7 @@
                     </div>
                     <div style="width: 60%; margin-left: 10%;">
                         <p :class="this.queue.queue[this.queue.isPlayingIndex]?.id == searchRes[0].videoId ? 'highlight' : 'info'" v-if="searchRes.length" style="font-size: 200%; font-weight: bold; text-align: left;">{{ searchRes[0].name }}</p>
-                        <p v-if="searchRes.length" style="color: white; font-size: 100%; text-align: left; width: min-content; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;" @click.stop="$router.push(`/artist/${searchRes[0].artist.artistId}`)">{{ searchRes[0].artist.name }}</p>
+                        <p v-for="(artist, index) in searchRes[0].artists" :key="index" style="color: white; font-size: 100%; text-align: left; width: min-content; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;" @click.stop="$router.push(`/artist/${artist.id}`)">{{ artist.name }}</p>
                         <br>
                         <div style="height: 5vh;">
                             <MusicBar v-if="this.queue.queue[this.queue.isPlayingIndex]?.id == searchRes[0].videoId && !this.queueStore.isLoading"></MusicBar>
@@ -50,11 +50,12 @@
                     <div class="info" style="width: 85%; border: 0px solid pink; display: flex; align-items: center; justify-content: space-between;">
                         <div style="text-align: left; width: 70%; border: 0px solid white;">
                             <p :class="this.queue.queue[this.queue.isPlayingIndex]?.id == track.videoId ? 'highlight' : ''" style="white-space: nowrap; overflow: hidden; text-overflow: ellipsis; width: 100%;">{{track.name}}</p>
-                            <p onmouseover="this.style.color = '#fff'" onmouseleave="this.style.color = 'grey'" style="color: grey; font-size: small; transition: 0.2s;width: min-content; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;" @click.stop="$router.push(`/artist/${track.artist.artistId}`)">{{ track.artist.name }}</p>
+                            <p v-for="(artist, index) in track.artists" :key="index" onmouseover="this.style.color = '#fff'" onmouseleave="this.style.color = 'grey'" style="color: grey; font-size: small; transition: 0.2s;width: min-content; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;" @click.stop="$router.push(`/artist/${artist.id}`)">{{ artist.name }}</p>
                         </div>
                         <div style="display: flex; align-items: center;">
                             <MusicBar v-if="this.queue.queue[this.queue.isPlayingIndex]?.id == track.videoId && !this.queueStore.isLoading"></MusicBar>
-                            <p style="color: white; font-size: small; transition: 0.2s; margin-left: 2vw;">{{ Math.floor(track.duration / 60) }}:{{ String(Math.ceil(track.duration % 60))}}</p>
+                            <p v-if="track.duration.duration && track.duration.formatted" style="color: white; font-size: small; transition: 0.2s; margin-left: 2vw;">{{ track.duration.formatted }}</p>
+                            <p v-else-if="track.duration.duration" style="color: white; font-size: small; transition: 0.2s; margin-left: 2vw;">{{ Math.floor(track.duration.duration / 60) }}:{{ String(Math.ceil(track.duration.duration % 60))}}</p>
                             <v-menu>
                                 <template v-slot:activator="{ props }">
                                     <v-btn
@@ -80,6 +81,54 @@
                         </div>
                     </div>
                 </div>
+
+                <div v-if="videos.length">
+                    <div>
+                        <p style="text-align: left; color: white; font-weight: bold; font-size: larger; margin-top: 2%;">Videos</p>
+                    </div>
+                    <div class="listItem" v-for="(track, index) in videos" :key="index" style="display: flex; border: 0px solid white; width: 100%; cursor: pointer;" @click="play(track)">
+                        <div class="thumb_cont">
+                            <div class="img-cont">
+                                <img class="thumbnail" :src="track.thumbnails[0].url" alt="">
+                            </div>
+                        </div>
+                        <div class="info" style="width: 85%; border: 0px solid pink; display: flex; align-items: center; justify-content: space-between;">
+                            <div style="text-align: left; width: 70%; border: 0px solid white;">
+                                <p :class="this.queue.queue[this.queue.isPlayingIndex]?.id == track.videoId ? 'highlight' : ''" style="white-space: nowrap; overflow: hidden; text-overflow: ellipsis; width: 100%;">{{track.name}}</p>
+                                <p v-for="(artist, index) in track.artists" :key="index" onmouseover="this.style.color = '#fff'" onmouseleave="this.style.color = 'grey'" style="color: grey; font-size: small; transition: 0.2s;width: min-content; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;" @click.stop="$router.push(`/artist/${artist.id}`)">{{ artist.name }}</p>
+                            </div>
+                            <div style="display: flex; align-items: center;">
+                                <MusicBar v-if="this.queue.queue[this.queue.isPlayingIndex]?.id == track.videoId && !this.queueStore.isLoading"></MusicBar>
+                                <p v-if="track.duration.duration && track.duration.formatted" style="color: white; font-size: small; transition: 0.2s; margin-left: 2vw;">{{ track.duration.formatted }}</p>
+                                <p v-else-if="track.duration.duration" style="color: white; font-size: small; transition: 0.2s; margin-left: 2vw;">{{ Math.floor(track.duration.duration / 60) }}:{{ String(Math.ceil(track.duration.duration % 60))}}</p>
+                                <v-menu>
+                                    <template v-slot:activator="{ props }">
+                                        <v-btn
+                                            v-bind="props"
+                                            color="white-lighten-2"
+                                            icon="mdi-dots-vertical"
+                                            variant="text"
+                                        ></v-btn>
+                                    </template>
+                                    <v-list theme="dark">
+                                        <v-list-item
+                                        v-for="(item, index) in ['Add to queue', 'Play next']"
+                                        size="small"
+                                        :key="index"
+                                        :value="index"
+                                        theme="dark"
+                                        >
+                                        <v-list-item-title @click="menuFunction(item, track)">{{ item }}</v-list-item-title>
+                                        </v-list-item>
+                                    </v-list>
+                                </v-menu>
+
+                            </div>
+                        </div>
+                    </div>                   
+                </div>
+
+
                 <div v-if="artists.length">
                     <div>
                         <p style="text-align: left; color: white; font-weight: bold; font-size: larger; margin-top: 2%;">Artists</p>
@@ -135,6 +184,7 @@ export default {
             searchRes: [],
             artists: [],
             querySearched: null,
+            videos: []
         }
     },
     deactivated(){
@@ -162,6 +212,9 @@ export default {
             this.queue.play();
             this.queue.isPlayingIndex = 0;
             EventBus.emit('play_track', track);
+            if (!track.isAudioOnly){
+                this.$router.push(`/playing/${track.id}`);
+            }
         },
         searchSong(query){
             if (!query) return
@@ -171,7 +224,8 @@ export default {
                 async(res) => {
                     this.isLoading = false;
                     res = await res.json();
-                    this.searchRes = res;
+                    this.searchRes = res.songs;
+                    this.videos = res.videos;
                 }
             )
             .catch((err) => {

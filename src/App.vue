@@ -9,22 +9,7 @@
   <div class="centerCont">
     <div class="centerTopCont">
       <div style="border: 0px solid green; height: 75%; display: flex; align-items: center; justify-content: center; z-index: 1;">
-        <h1 id="heading" style="margin-top: 5%;">
-          <span style="width: 100%;">
-            <svg :class="isPlaying ? 'head' : 'head_s'" style="width: 100%; border: 0px solid; height: 20vh;">
-              <text
-                :class="isPlaying ? 'head' : 'head_s'"
-                x="50%"
-                y="70%"
-                text-anchor="middle"
-                style="cursor: pointer; user-select: none; -webkit-user-select: none; -moz-user-select: none; -ms-user-select: none;"
-                @click="this.$router.push({ path: '/' })"
-              >
-                @12
-              </text>
-            </svg>
-          </span>
-        </h1>
+        <h1 @click="this.$router.push({ path: '/' })" class="header">@12</h1>
       </div>
       <div style="border: 0px solid green; height: 25%;">
         <v-text-field
@@ -361,11 +346,11 @@ body{
   height: 100vh;
 }
 
-  .hqueueCont{
-    border: 0px solid white;
-    width: 25%;
-    height: 100vh;
-  }
+.hqueueCont{
+  border: 0px solid white;
+  width: 25%;
+  height: 100vh;
+}
 
 .lrcCont{
   border: 0px solid white;
@@ -373,11 +358,39 @@ body{
   height: 100vh;
 }
 
- .hlrcCont{
-    border: 0px solid white;
-    width: 25%;
-    height: 100vh;
+.hlrcCont{
+  border: 0px solid white;
+  width: 25%;
+  height: 100vh;
+}
+
+.header {
+	font-size: 6rem;
+	font-weight:  100;
+	letter-spacing: 2px;
+  font-weight: 700;
+	text-align: center;
+	color: #f35626;
+	background-image: -webkit-linear-gradient(92deg, #f35626, #feab3a);
+	-webkit-background-clip: text;
+	-webkit-text-fill-color: transparent;
+	-webkit-animation: hue 10s infinite linear;
+  cursor: pointer;
+  user-select: none; 
+  -webkit-user-select: none; 
+  -moz-user-select: none; 
+  -ms-user-select: none;
+}
+
+@keyframes hue {
+  from {
+    -webkit-filter: hue-rotate(0deg);
   }
+  to {
+    -webkit-filter: hue-rotate(-360deg);
+  }
+}
+
 
 @media (max-width: 675px) {
   svg{

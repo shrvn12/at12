@@ -156,12 +156,12 @@ export default {
       }
         fetch(`https://api-dqfspola6q-uc.a.run.app/music/search/playlist?q=${q}`).then(async (res) => {
             if (!res.ok) {
-                this.toast.error("Failed to fetch artist data.");
+                this.toast.error("Failed to fetch playlist.");
             }
             this.playlist = await res.json();
         }).catch(error => {
             console.error("Error fetching artist data:", error);
-            this.toast.error("Failed to fetch artist data.");
+            this.toast.error("Failed to fetch playlist.");
             this.$router.replace('/home');
         });
     },
