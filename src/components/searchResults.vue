@@ -11,14 +11,18 @@
                     </div>
                     <div style="width: 60%; margin-left: 10%;">
                         <p :class="this.queue.queue[this.queue.isPlayingIndex]?.id == searchRes[0].videoId ? 'highlight' : 'info'" v-if="searchRes.length" style="font-size: 200%; font-weight: bold; text-align: left;">{{ searchRes[0].name }}</p>
-                        <p v-for="(artist, index) in searchRes[0].artists" :key="index" style="color: white; font-size: 100%; text-align: left; width: min-content; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;" @click.stop="$router.push(`/artist/${artist.id}`)">{{ artist.name }}</p>
+                        <p v-for="(artist, index) in searchRes[0].artists" :key="index" :class="artist.id? 'anchor': ''" style="color: white; font-size: 100%; text-align: left; width: min-content; overflow: hidden; width: 100%;" @click.stop="() => {
+                            if (artist.id){
+                                $router.push(`/artist/${artist.id}`)
+                            }
+                            }">{{ artist.name }}</p>
                         <br>
                         <div style="height: 5vh;">
                             <MusicBar v-if="this.queue.queue[this.queue.isPlayingIndex]?.id == searchRes[0].videoId && !this.queueStore.isLoading"></MusicBar>
                         </div>
 
                     </div>
-                    <div style="width: 15%; margin-left: auto; display: flex; justify-content: right;">
+                    <div style="width: 15%; border: 0px solid white; padding: 1% 0% 2% 0%; margin-left: auto; display: flex; flex-direction: column; justify-content: space-between; align-items: center;">
                         <v-menu>
                             <template v-slot:activator="{ props }">
                                 <v-btn
@@ -39,6 +43,7 @@
                                 </v-list-item>
                             </v-list>
                         </v-menu>
+                        <p style="color: white; font-size: small; transition: 0.2s;" v-if="searchRes[0].duration.duration">{{ searchRes[0].duration.formatted }}</p>
                     </div>
                 </div>
                 <div class="listItem" v-for="(track, index) in searchRes.slice(1)" :key="index" style="display: flex; border: 0px solid white; width: 100%; cursor: pointer;" @click="play(track)">
@@ -341,6 +346,10 @@ export default {
 
 .listItem:hover {
   background-color: #d3d3d317;
+}
+
+.anchor:hover{
+    text-decoration: underline;
 }
 
 @media (max-width: 675px) {

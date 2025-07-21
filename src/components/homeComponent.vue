@@ -5,23 +5,27 @@
                <p>{{ genre }}</p>
            </div>
         </div>
-        <Transition name="fade" mode="in-out">
-            <div v-if="isLoading" style="display: flex; justify-content: center; align-items: center; height: 45vh;" >
-                <img src="../assets/loading.gif" alt="">
+        <Transition name="fade" mode="out-in">
+        <template v-if="isLoading">
+            <div style="display: flex; justify-content: center; align-items: center; height: 45vh;">
+            <img src="../assets/loading.gif" alt="">
             </div>
-            <div v-else :class="queueStore.queue.length !== 0 ? 'withplayer' : 'withoutplayer'">
-                <div v-for="(song, index) in songs" :key="index" @click="play(song)" @mouseover="hoveredIndex = index" @mouseleave="hoveredIndex = null">
-                    <div style="position: relative; height: 85%; width: 100%; overflow: hidden; border-radius: 15px ;">
-                        <img class="thumbnail" :src="song.thumbnails.high.url" alt="">
-                        <div class="hplay">
-                             <v-btn class="hbtn" v-if="hoveredIndex == index || queueStore.queue[queueStore.isPlayingIndex]?.id == song.id" icon style="height: 100%; width: 100%; background-color: rgb(0,0,0,0.7);">
-                                <v-icon @click.stop="togglePlayPause(song)" :color="'#fff'">{{queueStore.queue[queueStore.isPlayingIndex]?.id == song.id && queueStore.isPlaying ? 'mdi-pause' : 'mdi-play'}}</v-icon>
-                            </v-btn>
-                        </div>
-                    </div>
-                    <p class="ellipse">{{(song.title).split("|")[0]}}</p>
+        </template>
+        <template v-else>
+            <div :class="queueStore.queue.length !== 0 ? 'withplayer' : 'withoutplayer'">
+            <div v-for="(song, index) in songs" :key="index" @click="play(song)" @mouseover="hoveredIndex = index" @mouseleave="hoveredIndex = null">
+                <div style="position: relative; height: 85%; width: 100%; overflow: hidden; border-radius: 15px ;">
+                <img class="thumbnail" :src="song.thumbnails.high.url" alt="">
+                <div class="hplay">
+                    <v-btn class="hbtn" v-if="hoveredIndex == index || queueStore.queue[queueStore.isPlayingIndex]?.id == song.id" icon style="height: 100%; width: 100%; background-color: rgb(0,0,0,0.7);">
+                    <v-icon @click.stop="togglePlayPause(song)" :color="'#fff'">{{ queueStore.queue[queueStore.isPlayingIndex]?.id == song.id && queueStore.isPlaying ? 'mdi-pause' : 'mdi-play' }}</v-icon>
+                    </v-btn>
                 </div>
-            </div>            
+                </div>
+                <p class="ellipse">{{ (song.title).split("|")[0] }}</p>
+            </div>
+            </div>
+        </template>
         </Transition>
     </div>
 </template>
