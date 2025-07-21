@@ -9,8 +9,8 @@
                     <div style="width: 25%;">
                         <img style="width: 100%; aspect-ratio: 1/1; margin: 10%; display: block; border-radius: 10px;" :src="searchRes.length && searchRes[0].thumbnails[1].url" alt="">
                     </div>
-                    <div style="width: 60%; margin-left: 10%;">
-                        <p :class="this.queue.queue[this.queue.isPlayingIndex]?.id == searchRes[0].videoId ? 'highlight' : 'info'" v-if="searchRes.length" style="font-size: 200%; font-weight: bold; text-align: left;">{{ searchRes[0].name }}</p>
+                    <div style="width: 60%; margin-left: 10%;" :class="this.queue.queue[this.queue.isPlayingIndex]?.id == searchRes[0].videoId ? 'highlight' : 'info'">
+                        <p v-if="searchRes.length" style="font-size: 200%; font-weight: bold; text-align: left;">{{ searchRes[0].name }}</p>
                         <p v-for="(artist, index) in searchRes[0].artists" :key="index" :class="artist.id? 'anchor': ''" style="color: white; font-size: 100%; text-align: left; width: min-content; overflow: hidden; width: 100%;" @click.stop="() => {
                             if (artist.id){
                                 $router.push(`/artist/${artist.id}`)
@@ -39,7 +39,7 @@
                                 :value="index"
                                 theme="dark"
                                 >
-                                <v-list-item-title v-if="!(item == 'Play next' && this.queue.queue[this.queue.isPlayingIndex]?.id == searchRes[0].videoId)" @click="menuFunction(item, searchRes[0])">{{ item }}</v-list-item-title>
+                                <v-list-item-title @click="menuFunction(item, searchRes[0])">{{ item }}</v-list-item-title>
                                 </v-list-item>
                             </v-list>
                         </v-menu>
@@ -113,6 +113,7 @@
                                             color="white-lighten-2"
                                             icon="mdi-dots-vertical"
                                             variant="text"
+                                            style="color: white !important;"
                                         ></v-btn>
                                     </template>
                                     <v-list theme="dark">
@@ -134,9 +135,12 @@
                 </div>
 
 
-                <div v-if="artists.length">
-                    <div>
-                        <p style="text-align: left; color: white; font-weight: bold; font-size: larger; margin-top: 2%;">Artists</p>
+                <div v-if="searchRes.length">
+                    <div v-if="isLoadingArtists">
+                        <p style="text-align: left; color: white; font-weight: bold; font-size: larger; margin-top: 2%;">Loading Artists ✨</p>
+                    </div>
+                    <div v-else>
+                        <p style="text-align: left; color: white; font-weight: bold; font-size: larger; margin-top: 2%;">Artists 🎙️</p>
                     </div>
                     <div style="overflow-x: auto; overflow-y: hidden; width: 100%; display: flex; border: 0px solid white; gap: 10px; padding: 10px;">
                         <div
@@ -160,7 +164,7 @@
             </div>
             <div v-else>
                 <v-skeleton-loader v-for="n in 5" :key="n" type="list-item-avatar" color="#80808027" style="margin-top: 1.5%;"></v-skeleton-loader>
-            </div>        
+            </div>       
         </transition>
     </div>
 
@@ -186,6 +190,7 @@ export default {
         return {
             toast: useToast(),
             isLoading: false,
+            isLoadingArtists: false,
             searchRes: [],
             artists: [],
             querySearched: null,
@@ -221,32 +226,52 @@ export default {
                 this.$router.push(`/playing/${track.id}`);
             }
         },
-        searchSong(query){
-            if (!query) return
+        searchSong(query) {
+            if (!query) return;
+
             this.querySearched = this.searchQuery;
             this.isLoading = true;
-            fetch(`https://api-dqfspola6q-uc.a.run.app/music/searchSong?query=${query}`).then(
-                async(res) => {
+            // Song search
+            fetch(`https://api-dqfspola6q-uc.a.run.app/music/searchSong?query=${query}`)
+                .then(async (res) => {
                     this.isLoading = false;
                     res = await res.json();
                     this.searchRes = res.songs;
                     this.videos = res.videos;
-                }
-            )
-            .catch((err) => {
-                console.log(err);
-                this.isLoading = false;
-                this.toast.error('Something went wrong while getting results')
-            });
+                    console.log(res);
+                    // Fetch artist details from the first song
+                    if (res.songs.length && res.songs[0].artists?.length) {
+                        // const artistIds = [];
+                        // res.songs[0].artists.map((item) => {
+                        //     artistIds.push(item.id);
+                        // })
 
-            fetch(`https://api-dqfspola6q-uc.a.run.app/music/search/artist?q=${query}`).then(
-                async(res) => {
+                        const artistIds = res.songs[0].artists.reduce((collector, item) => {collector.push(item.id); return collector}, [])
+                        console.log(artistIds);
+                        await this.fetchArtists(artistIds);
+                    }
+                })
+                .catch((err) => {
+                    console.log(err);
+                    this.isLoading = false;
+                    this.toast.error('Something went wrong while getting results');
+                });
+        },
+
+        async fetchArtists(artistIds) {
+            this.artists = [];
+            const query = artistIds.map(id => `id=${encodeURIComponent(id)}`).join('&');
+            this.isLoadingArtists = true;
+            fetch(`https://api-dqfspola6q-uc.a.run.app/music/artist?${query}`)
+                .then(async (res) => {
                     res = await res.json();
                     this.artists = res;
-                }
-            ).catch((err) => {
-                console.log(err);
-            });
+                })
+                .catch((err) => {
+                    console.log(err);
+                }).finally(() => {
+                    this.isLoadingArtists = false;
+                });
         },
         goBack() {
             if(window.history.state && window.history.state.back){
@@ -329,6 +354,10 @@ export default {
 
 .info{
     color : white;
+}
+
+.info p:hover{
+    color: #ff8ca3;
 }
 
 .test{

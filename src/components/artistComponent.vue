@@ -17,7 +17,7 @@
 
         <div style="width: 50%; margin-left: 5%;">
           <p style=" text-align: left; border: 0px solid white; font-size: 250%; font-weight: bold; color: white;">{{ info.name }}</p>
-          <p style=" text-align: left; border: 1px solid #fc2c55; font-size: 100%; font-weight: 300; color: white; width: fit-content; padding: 1% 3%; border-radius: 20px; margin-bottom: 2%;">
+          <p v-if="info?.additionalInfo?.followers?.followersText" style=" text-align: left; border: 1px solid #fc2c55; font-size: 100%; font-weight: 300; color: white; width: fit-content; padding: 1% 3%; border-radius: 20px; margin-bottom: 2%;">
             <v-icon color="#fff">mdi-account</v-icon>
           {{ info?.additionalInfo?.followers?.followersText}}</p>
           <p style=" text-align: left; border: 0px solid white; font-size: 100%; font-weight: 300; color: white;">
@@ -26,11 +26,22 @@
           <p style=" text-align: left; border: 0px solid white; font-size: 100%; font-weight: 300; color: white;">
             <v-icon color="#fff">mdi-chart-bar</v-icon>
             {{ Number(info?.channelInfo?.statistics?.viewCount).toLocaleString() }} views</p>
-          <p v-if="fulldesc" style="color: white; font-size: small; text-align: left;  margin-top: 3%;">{{ info?.additionalInfo?.description}}</p>
-          <p v-else style="color: white; font-size: small; text-align: left;  margin-top: 3%;">
-            {{ info?.additionalInfo?.description?.substring(0, 200) }}...
-          </p>
-          <p style="color: #fc2c55; cursor: pointer; text-align: left; width: min-content;  font-size: small;" @click="fulldesc = !fulldesc">{{fulldesc? 'Less' : 'More'}}</p>
+          <template v-if="info?.additionalInfo?.description || info.channelInfo.snippet.description">
+            <p v-if="showFullDesc" style="color: white; font-size: small; text-align: left; margin-top: 3%;">
+              {{ description() }}
+            </p>
+            <p v-else style="color: white; font-size: small; text-align: left; margin-top: 3%;">
+              {{ description().substring(0, 200) }}...
+            </p>
+            <p
+              v-if="description().length > 200"
+              style="color: #fc2c55; cursor: pointer; text-align: left; width: min-content; font-size: small;"
+              @click="showFullDesc = !showFullDesc"
+            >
+              {{ showFullDesc ? 'Less' : 'More' }}
+            </p>
+          </template>
+          
         </div>
       </div>
       <div style="border: 0px solid white;">
@@ -134,20 +145,24 @@ export default {
       message: "This is a placeholder for the at12 component.",
       toast: useToast(),
       info: {},
-      fulldesc: false,
+      showFullDesc: false,
       playlist: []
     };
   },
   methods: {
+    description() {
+      return this.info?.additionalInfo?.description || this.info?.channelInfo?.snippet?.description || '';
+    },
     getArtist(id){
       if (!id){
         return;
       }
-        fetch(`https://api-dqfspola6q-uc.a.run.app/music/artist/${id}`).then(async (res) => {
+        fetch(`https://api-dqfspola6q-uc.a.run.app/music/artist?id=${id}`).then(async (res) => {
             if (!res.ok) {
                 this.toast.error("Failed to fetch artist data.");
             }
-            this.info = await res.json();
+            res = await res.json()
+            this.info = res[0];
             this,this.getPlaylist(this.info.name)
         }).catch(error => {
             console.error("Error fetching artist data:", error);
