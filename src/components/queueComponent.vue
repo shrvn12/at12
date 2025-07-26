@@ -28,7 +28,7 @@
           >
             <v-list-item-content>
               <v-list-item-title>{{ song.title || song.snippet?.title }}</v-list-item-title>
-              <v-list-item-subtitle>{{ song.channel || song.channelTitle || song.artist?.name || song.snippet?.videoOwnerChannelTitle }}</v-list-item-subtitle>
+              <v-list-item-subtitle>{{ song.artists || song.channel || song.channelTitle || song.artist?.name || song.snippet?.videoOwnerChannelTitle }}</v-list-item-subtitle>
             </v-list-item-content>
 
               <v-icon
@@ -73,7 +73,7 @@ export default {
         }
           EventBus.emit('onlyPlay', track);
           if (this.$router.currentRoute?._value?.name == 'nowPlaying') {
-              this.$router.replace(`/playing/${track.id}`);
+              this.$router.replace(`/playing/${track.id || track.videoId}`);
           }
           this.scrollToCurrentSong()
       },

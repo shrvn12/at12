@@ -176,7 +176,7 @@ export default {
             }
             if (!data || !data.id) return;
 
-            this.videoId = data.id;
+            this.videoId = data.id || data.videoId;
 
             if (!this.player) {
                 // First time ever: create the player with startPlayer()
@@ -191,12 +191,6 @@ export default {
                 this.queueStore.isLoading = true;
                 this.queueStore.fetchInfo(data.id).then((info) => {
                     this.queueStore.isLoading = false;
-                    // if(this.queueStore.isPlayingIndex == 0 && !['10', '1'].includes(info.categoryId)){
-                    //     this.player.destroy();
-                    //     this.toast.error('Cannot play this video');
-                    //     this.$router.replace('/');
-                    //     return;
-                    // }
                     if (this.queueStore.queue[this.queueStore.isPlayingIndex].id == info.id) {
                         this.queueStore.queue[this.queueStore.isPlayingIndex] = info;
                     }
@@ -242,7 +236,6 @@ export default {
                     return;
                 }
                 this.lastKeyTime = currentTime;
-                console.log(this.queueStore.isPlayingIndex, this.queueStore.playlist, this.queueStore.queue);
                 if (this.queueStore.playlist && this.queueStore.isPlayingIndex == (this.queueStore.queue.length-1)){
                     this.queueStore.isPlayingIndex = 0;
                     this.play(this.queue[this.queueStore.isPlayingIndex]);
@@ -256,11 +249,11 @@ export default {
                     if (lastItemId) {
                         return this.fetchQueue(lastItemId).then((data) => {
                             if (data.length) {
-                                this.queueStore.queue = [...this.queueStore.queue, ...data.slice(1)];
+                                this.queueStore.queue = [...this.queueStore.queue, ...data];
                                 this.queueStore.isPlayingIndex++;
                                 this.play(this.queue[this.queueStore.isPlayingIndex]);
                                 if (this.$router.currentRoute?._value?.name == 'nowPlaying') {
-                                    this.$router.replace(`/playing/${this.queue[this.queueStore.isPlayingIndex].id}`);
+                                    this.$router.replace(`/playing/${this.queue[this.queueStore.isPlayingIndex].id || this.queue[this.queueStore.isPlayingIndex].id}`);
                                 }
                                 EventBus.emit('scrollToCurrentSong');
                             }
@@ -379,9 +372,13 @@ export default {
             }
         },
         async fetchQueue(trackId) {
-            return await fetch(`https://api-dqfspola6q-uc.a.run.app/music/getQueue?videoId=${trackId}`).then(
+            return await fetch(`https://api-dqfspola6q-uc.a.run.app/music/getUpNexts/${trackId}`).then(
                 async (res) => {
                     res = await res.json();
+                    res = res.map((item) => {
+                        item.id = item.videoId;
+                        return item;
+                    });
                     return res;
                 }
             )

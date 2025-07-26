@@ -28,7 +28,6 @@
           spellcheck="false"
           autocomplete="off"
           persistent-clear
-          @update:search="search"
           @update:modelValue="searchSong"
         ></v-text-field>
       </div>
