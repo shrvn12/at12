@@ -135,7 +135,7 @@ export default {
   .queueContainer {
     width: 100%;
     height: 80vh;
-    z-index: 1;
+    z-index: 2;
     background-color: #000;
   }
   

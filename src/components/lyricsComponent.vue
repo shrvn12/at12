@@ -39,7 +39,6 @@ export default {
     return {
       info: this.queueStore.queue[this.queueStore.isPlayingIndex] || {},
       toast: useToast(),
-      parsedLyrics: [],
       currentTime: 0,
       currentLyricIndex: null,
       autoscroll: true,
@@ -127,6 +126,17 @@ export default {
       });
     },
 
+    resetScrollPosition() {
+      const lyricContainer = this.$refs.lyricContainer;
+      console.log(lyricContainer, "Scroll position reset");
+      if (lyricContainer) {
+        lyricContainer.scrollTo({
+          top: 0,
+          behavior: 'smooth',
+        });
+      }
+    },
+
     jumpToTime(time) {
       time && EventBus.emit('jumpToTime', time);
     }
@@ -143,15 +153,6 @@ export default {
     EventBus.on('info', (info) => {
         this.currentLyricIndex = null; // Reset current lyric index on new info
         this.info = info;
-        if (info.lyrics) {
-            // On new lyrics, scroll back to top:
-            this.$refs.lyricContainer?.scrollTo({
-            top: 0,
-            behavior: "smooth",
-            });
-        } else {
-            this.parsedLyrics = [];
-        }
     });
 
     EventBus.on('updateCurrentTime', (val) => this.updateCurrentTime(val));
@@ -166,6 +167,14 @@ export default {
     const lyricContainer = this.$refs.lyricContainer;
     if (lyricContainer) {
       lyricContainer.removeEventListener("scroll", this.handleUserScroll);
+    }
+  },
+
+  watch:{
+    'info.lyrics'(){
+      setTimeout(() => {
+        this.resetScrollPosition();
+      }, 300)
     }
   }
 };
@@ -245,6 +254,7 @@ export default {
     width: 100%;
     height: 80vh;
     z-index: 1;
+    background-color: #000;
   }
 }
       

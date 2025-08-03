@@ -143,7 +143,7 @@ export default {
                 return;
             }
             this.isPlaying ? this.player.pauseVideo() : this.player.playVideo();
-            this.isPlaying = !this.isPlaying
+            // this.isPlaying = !this.isPlaying
             this.queueStore.isPaused = !this.isPlaying;
             this.queueStore.isPlaying = this.isPlaying;
         },
@@ -161,9 +161,15 @@ export default {
         },
         toggleQueue() {
             this.queueStore.isQueueVisible = !this.queueStore.isQueueVisible;
+            if (window.innerWidth < 675 && this.queueStore.isLyricsVisible){
+                this.queueStore.isLyricsVisible = false;
+            }
         },
         toggleLyrics() {
             this.queueStore.isLyricsVisible = !this.queueStore.isLyricsVisible;
+            if (window.innerWidth < 675 && this.queueStore.isQueueVisible){
+                this.queueStore.isQueueVisible = false;
+            }
         },
         handleVolumeChange(value) {
             if (this.player) {
@@ -328,6 +334,9 @@ export default {
             else {
                 this.isPlaying = false;
                 this.cancelAnimationFrameLoop();
+            }
+            if (event.data === YT.PlayerState.PAUSED){
+                this.isPlaying = false;
             }
             if (event.data === YT.PlayerState.ENDED) {
                 this.playNext();
