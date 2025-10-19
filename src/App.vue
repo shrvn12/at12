@@ -8,10 +8,11 @@
   </div>
   <div class="centerCont">
     <div class="centerTopCont">
-      <div style="border: 0px solid green; height: 75%; display: flex; align-items: center; justify-content: center; z-index: 1;">
+      <centerTopBackground></centerTopBackground>
+      <div style="border: 0px solid green; height: 82%; display: flex; align-items: center; justify-content: center; z-index: 1;">
         <h1 @click="this.$router.push({ path: '/' })" class="header">@12</h1>
-      </div>
-      <div style="border: 0px solid green; height: 25%;">
+      </div>  
+      <div style="border: 0px solid green; height: 20%;">
         <v-text-field
           name="searchComponent"
           class="input"
@@ -65,7 +66,8 @@ import { RouterView } from 'vue-router';
 import QueueComponent from './components/queueComponent.vue';
 import lyricsComponent from './components/lyricsComponent.vue';
 import BackgroundComponent from './components/backgroundComponent.vue';
-
+import centerTopBackground from './components/centerTopBackground.vue';
+import { ref } from 'vue';
 export default {
   name: 'App',
   components: {
@@ -73,7 +75,8 @@ export default {
     RouterView,
     QueueComponent,
     lyricsComponent,
-    BackgroundComponent
+    BackgroundComponent,
+    centerTopBackground,
   },
   setup() {
     // Access the store in setup (reactive by default)
@@ -91,6 +94,7 @@ export default {
       queue: [],
       searchRes: [],
       isPlaying: false,
+      bgHTML: ref(''),
     }
   },
   methods: {
@@ -130,6 +134,8 @@ export default {
         this.queueStore.isQueueVisible = false;
         this.queueStore.isLyricsVisible = false;
       }
+      // const res = await fetch('/mandala.html'); // path relative to public folder
+      // this.bgHTML.value = await res.text();
   }
 }
 
@@ -159,6 +165,16 @@ body{
   -webkit-font-smoothing: antialiased; /* For WebKit-based browsers */
   -moz-osx-font-smoothing: grayscale;  /* For macOS */
 }
+
+.background {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100vw;
+  height: 100vh;
+  z-index: -1;
+}
+
 #app {
   /* font-family: Avenir, Helvetica, Arial, sans-serif; */
   font-family: "Ubuntu", sans-serif;
@@ -215,6 +231,8 @@ body{
   border:0px solid yellow;
   height: 45vh;
   width: 100%;
+  overflow: hidden;
+  position: relative;
 }
 
 .head {
