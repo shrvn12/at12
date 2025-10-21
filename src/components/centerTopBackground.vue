@@ -20,7 +20,7 @@ const backgroundPath = ref('/mandala.html');
 .background-wrapper {
   position: fixed;
   width: 50vw;
-  height: 45vh;
+  height: 43vh;
   overflow: hidden;
   /* border: 1px solid white; */
   z-index: -1;

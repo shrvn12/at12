@@ -9,7 +9,7 @@
   <div class="centerCont">
     <div class="centerTopCont">
       <centerTopBackground></centerTopBackground>
-      <div style="border: 0px solid green; height: 82%; display: flex; align-items: center; justify-content: center; z-index: 1;">
+      <div style="border: 0px solid green; height: 80%; display: flex; align-items: center; justify-content: center; z-index: 1;">
         <h1 @click="this.$router.push({ path: '/' })" class="header">@12</h1>
       </div>  
       <div style="border: 0px solid green; height: 20%;">
