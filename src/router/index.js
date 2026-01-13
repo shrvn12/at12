@@ -38,7 +38,7 @@ router.beforeEach(async (to, from) => {
   // 1️⃣ Fetch user info only once
   if (!userStore.user.id) {
     try {
-      const res = await fetch('/api/auth/userInfo', {
+      const res = await fetch('https://api-dqfspola6q-uc.a.run.app/auth/userInfo', {
         method: 'GET',
         credentials: 'include',
         headers: { 'Content-Type': 'application/json' }
