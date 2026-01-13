@@ -1,12 +1,11 @@
 <template>
 <div id="cont">
-    <div style="width: 100%; height: 10%; display: flex; justify-content: space-between;">
+    <div style="width: 100%; height: 10%; display: flex; margin-top: 1vh;">
         <v-icon style="cursor: pointer;" color="#ffffff" @click="goBack()">mdi-arrow-left</v-icon>
-        <v-icon v-if="info.isAudioOnly == false" :title="showVideo? 'Audio Only' : 'Video (if available)'" @click="showVideo = !showVideo" style="cursor: pointer;" color="#ffffff">{{ !showVideo? 'mdi-youtube-tv' : 'mdi-ipod'}}</v-icon>
     </div>
     <div class="playerCont">
         <div class="imgcont">
-            <div v-if="!showVideo" style="margin-right: 3%; position: relative; overflow: hidden; height: 100%; aspect-ratio: 1/1; border: 0px solid white;">
+            <div v-if="!showVideo" style="position: absolute; overflow: hidden; height: 100%; aspect-ratio: 1/1; left: 0; border: 0px solid white;">
               <transition name="fade" mode="out-in">
                 <v-skeleton-loader v-if="isLoading || !info?.thumbnails?.standard?.url || !info.stats" color="#80808027" type="card"></v-skeleton-loader>
                 <img v-else class="thumbnail" :src="info?.thumbnails?.standard?.url" alt="">
@@ -15,7 +14,7 @@
         </div>
         <div class="infocont">
           <transition name="fade" mode="out-in">
-              <v-skeleton-loader  v-if="isLoading || !info?.stats" style="width: 100%" height="150px" color="#80808027" type="article"></v-skeleton-loader>
+              <v-skeleton-loader  v-if="isLoading || !info?.stats" style="width: 100%" height="90%" color="#80808027" type="article"></v-skeleton-loader>
               <div v-else class="info">
                   <p v-if="info.title" style="width: 25vw; font-weight: bold; color: #ffffff; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;">{{ info?.title}}</p>
                   <div v-for="(artist, index) in info.artist" :key="index">
@@ -30,7 +29,12 @@
                   <transition name="fade" mode="out-in">
                     <p v-if="info?.stats?.viewCount" style="font-size: small"><v-icon color="#fff" size="small">mdi-eye</v-icon> {{ formatNumber(info?.stats?.viewCount) }}</p>
                   </transition>
-              </div>            
+                  <div style="position: absolute; bottom: 0; left: 0;">
+                    <v-icon style="cursor: pointer;" color="#ffffff">{{'mdi-heart'}}</v-icon>
+
+                    <v-icon v-if="info.isAudioOnly == false" :title="showVideo? 'Audio Only' : 'Video (if available)'" @click="showVideo = !showVideo" style="cursor: pointer;" color="#ffffff">{{ !showVideo? 'mdi-youtube-tv' : 'mdi-ipod'}}</v-icon>
+                  </div>
+              </div>
           </transition>
         </div>
     </div>
@@ -40,6 +44,7 @@
 import { useToast } from 'vue-toastification';
 import { useQueueStore } from '../stores/queue';
 import { EventBus } from '../eventBus';
+import { useUserStore } from '../stores/user';
 
 
 export default {
@@ -51,6 +56,14 @@ export default {
       isLoading: false,
       player: document.getElementById('player'),
       showVideo: true,
+      quality: {
+        small: '144p',
+        medium: '360p',
+        large: '480p',
+        hd720: '720p',
+        hd1080: '1080p',
+        highres: '2160p',
+      }
     }
   },
   computed: {
@@ -69,7 +82,8 @@ export default {
   },
   setup() {
     const queueStore = useQueueStore();
-    return { queueStore };
+    const userStore = useUserStore();
+    return { queueStore, userStore };
   },
   methods: {
     async loadInfo(id){
@@ -120,6 +134,7 @@ export default {
   },
   activated(){
     this.showVideo = !this.info.isAudioOnly;
+    this.info = this.queue[this.isPlayingIndex] || {};
   },
   mounted() {
     if (this.videoId){
@@ -177,17 +192,19 @@ export default {
   width: 100%; /* Set the width to fill the div */
   object-fit: cover;
   z-index: 1;
-
 }
 
 .info {
-    color: white;
-    margin-left: 1%;
-    display: flex;
-    flex-direction: column;
-    align-items: start;
-    justify-content: right;
-    text-align: left;
+  height: 80%;
+  position: relative;
+  color: white;
+  margin-left: 1%;
+  display: flex;
+  flex-direction: column;
+  align-items: start;
+  justify-content: right;
+  text-align: left;
+  border: 0px solid white;
 }
 
 .infocont{
@@ -201,16 +218,15 @@ export default {
 .imgcont{
   width: 25%;
   height: 100%; 
-  border: 0px solid white;
 }
 
 .playerCont{
   border: 0px solid white;
   width: 100%;
-  height: 28vh;
+  height: 100%;
   display: flex; 
   align-items: start;
-  margin-top: 5%;
+  margin-top: 1%;
 }
 
 .playerCont>div:nth-child(1){

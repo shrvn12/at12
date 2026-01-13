@@ -29,21 +29,21 @@
             ></v-slider>
         </div>
         <div style="border: 0px solid white; display: flex; justify-content: space-between; overflow: hidden; height: 6vh;">
-            <v-btn @click="playPrev" icon :ripple="true" title="Previous" base-color="transparent">
+            <v-btn @click="playPrev" variant="text" icon :ripple="true" title="Previous" base-color="transparent">
                     <v-icon size="large" color="#fff">mdi-skip-previous-outline</v-icon>
             </v-btn>
-            <v-btn base-color="transparent" icon :title="isPlaying ? 'Pause' : 'Play'" @click="togglePlayPause">
+            <v-btn base-color="transparent" variant="text" icon :title="isPlaying ? 'Pause' : 'Play'" @click="togglePlayPause">
                 <v-icon :color="'#fff'" size="large">{{ isPlaying ? 'mdi-pause-box-outline' : 'mdi-play-outline' }}</v-icon>
             </v-btn>
-            <v-btn @click="playNext" icon :ripple="true" title="Next" base-color="transparent">
+            <v-btn @click="playNext" variant="text" icon :ripple="true" title="Next" base-color="transparent">
                 <v-icon size="large" color="#fff">mdi-skip-next-outline</v-icon>
             </v-btn>
-            <v-btn icon :ripple="true" title="repeat" base-color="transparent" @click="toggleRepeat">
+            <v-btn icon :ripple="true" variant="text" title="repeat" base-color="transparent" @click="toggleRepeat">
                 <v-icon v-if="repeat && !repeatOnce" size="default" color="#fff">mdi-repeat</v-icon>
                 <v-icon v-if="repeatOnce && !repeat" size="default" color="#fff">mdi-repeat-once</v-icon>
                 <v-icon v-if="!repeat && !repeatOnce" size="default" color="#fff">mdi-repeat-off</v-icon>
             </v-btn>
-            <v-btn icon :ripple="!shuffleDisabled" title="shuffle" base-color="transparent" :style="{cursor: shuffleDisabled ? 'not-allowed' : 'pointer'}">
+            <v-btn icon :ripple="!shuffleDisabled" variant="text" title="shuffle" base-color="transparent" :style="{cursor: shuffleDisabled ? 'not-allowed' : 'pointer'}">
                 <v-icon :disabled="shuffleDisabled" size="default" color="#fff">mdi-shuffle</v-icon>
             </v-btn>
 
@@ -63,10 +63,10 @@
                 ></v-slider>
             </div>
             
-            <v-btn @click="toggleQueue()" icon :ripple="true" title="Queue" base-color="transparent">
+            <v-btn @click="toggleQueue()" variant="text" icon :ripple="true" title="Queue" base-color="transparent">
                     <v-icon size="default" color="#fff">{{queueStore.isQueueVisible? "mdi-list-box" : "mdi-list-box-outline"}}</v-icon>
             </v-btn>
-            <v-btn icon :ripple="!lyricsDisabled" title="Lyrics" base-color="transparent">
+            <v-btn icon :ripple="!lyricsDisabled" variant="text" title="Lyrics" base-color="transparent">
                 <v-icon @click="toggleLyrics()" size="default" color="#fff">{{ queueStore.isLyricsVisible? 'mdi-music-box' : 'mdi-music-box-outline'}}</v-icon>
             </v-btn>
         </div>
@@ -195,8 +195,15 @@ export default {
             }
             if (!this.queueStore.queue[this.queueStore.isPlayingIndex].stats){
                 this.queueStore.isLoading = true;
+                EventBus.emit('loading_info_1');
+                // console.log('loading true');
                 this.queueStore.fetchInfo(data.id).then((info) => {
                     this.queueStore.isLoading = false;
+                    // console.log('loading false');
+                    EventBus.emit('loading_info_0');
+                    if(info.thumbnails.maxres){
+                        EventBus.emit('update-background', info.thumbnails.maxres.url);
+                    }
                     if (this.queueStore.queue[this.queueStore.isPlayingIndex].id == info.id) {
                         this.queueStore.queue[this.queueStore.isPlayingIndex] = info;
                     }
@@ -205,6 +212,8 @@ export default {
                 }).catch((err) => {
                     console.log(err);
                     this.queueStore.isLoading = false;
+                    // console.log('loading false');
+                    EventBus.emit('loading_info_0');
                     this.toast.error('Something went wrong while getting the track');
                 });
             } else {
@@ -356,10 +365,10 @@ export default {
                     enablejsapi: 1,                        // ⬅️ explicitly enable JS API
                     origin: window.location.origin,        // ⬅️ tell YouTube which origin you’re on
                     rel: 0,
-                    controls: 0,
+                    controls: 1,
                     modestbranding: 1,
                     disablekb: 1,
-                    fs: 0,
+                    fs: 1,
                     iv_load_policy: 3,
                     cc_load_policy: 0,
                     autohide: 1,
@@ -367,6 +376,10 @@ export default {
                 events: {
                     onReady: this.onPlayerReady,
                     onStateChange: this.onPlayerStateChange,
+                    onPlaybackQualityChange: (event) => {
+                        console.log('Playback quality changed to:', event.data);
+                        this.queueStore.quality = event.data;
+                    }
                 },
                 });
             };
@@ -404,7 +417,15 @@ export default {
             this.queueStore.isPlayingIndex = 0;
             this.queueStore.queue = [track];
             this.queueStore.playlist = null;
+            console.log(this.queueStore.queue);
             this.play(track);
+
+            track.id && this.fetchQueue(track.id).then((data) => {
+                if (data.length) {
+                    this.queueStore.queue = [...this.queueStore.queue, ...data];
+                }
+            });
+
         });
         EventBus.on('play_playlist', (args) => {
             args = JSON.parse(JSON.stringify(args));
@@ -476,7 +497,7 @@ html{
     bottom: 0px;
     left: 0;
     right: 0;
-    background-color: #010101;
+    /* background-color: #010101; */
     border: 0px solid red;
     height: 10vh;
     z-index: 1;

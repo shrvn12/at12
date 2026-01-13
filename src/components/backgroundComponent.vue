@@ -1,248 +1,231 @@
 <template>
     <div class="sky">
-        <div id="stars-container">
-            <div class="stars-layer slow" id="stars-slow"></div>
-            <div class="stars-layer fast" id="stars-fast"></div>
-        </div>
-
-        <!-- New layer for shooting stars -->
-        <div id="shooting-stars-layer"></div>
+        <div class="gradient-layer gradient-layer-1" :style="{ background: gradientStyle1 }"></div>
+        <div class="gradient-layer gradient-layer-2" :style="{ background: gradientStyle2, opacity: currentLayer === 2 ? 1 : 0 }"></div>
+        <div v-if="imageUrl" class="image-overlay" :style="{ backgroundImage: `url(${imageUrl})` }"></div>
     </div>
 </template>
-<style>
 
+<script>
+import { EventBus } from '../eventBus.js';
+
+export default {
+    data() {
+        return {
+            imgUrl: null,
+            gradientStyle1: 'linear-gradient(135deg, #051200 0%, #02010d 16.667%, #050a1a 33.333%, #0f1d16 50%, #1f1906 66.667%, #350400 83.333%, #500501 100%)',
+            gradientStyle2: 'linear-gradient(135deg, #051200 0%, #02010d 16.667%, #050a1a 33.333%, #0f1d16 50%, #1f1906 66.667%, #350400 83.333%, #500501 100%)',
+            defaultGradient: 'linear-gradient(135deg, #051200 0%, #02010d 16.667%, #050a1a 33.333%, #0f1d16 50%, #1f1906 66.667%, #350400 83.333%, #500501 100%)',
+            currentLayer: 1
+        }
+    },
+    watch: {
+        imageUrl(newUrl) {
+            if (newUrl) {
+                this.extractColorsAndCreateGradient(newUrl);
+            } else {
+                this.updateGradient(this.defaultGradient);
+            }
+        }
+    },
+    mounted() {
+        if (this.imageUrl) {
+            this.extractColorsAndCreateGradient(this.imageUrl);
+        }
+        EventBus.on('update-background', (newImageUrl) => {
+            console.log('Received update-background event with URL:', newImageUrl);
+            if (newImageUrl && newImageUrl !== this.imageUrl) {
+                this.extractColorsAndCreateGradient(newImageUrl);
+                this.imageUrl = newImageUrl;
+            } else {
+                this.gradientStyle = this.defaultGradient;
+            }
+        });
+    },
+    methods: {
+        updateGradient(newGradient) {
+            // Alternate between layers for smooth crossfade
+            if (this.currentLayer === 1) {
+                this.gradientStyle2 = newGradient;
+                this.currentLayer = 2;
+            } else {
+                this.gradientStyle1 = newGradient;
+                this.currentLayer = 1;
+            }
+        },
+        
+        extractColorsAndCreateGradient(imageUrl) {
+            const img = new Image();
+            img.crossOrigin = 'Anonymous';
+            
+            img.onload = () => {
+                try {
+                    const canvas = document.createElement('canvas');
+                    const ctx = canvas.getContext('2d');
+                    
+                    // Resize to smaller dimension for faster processing
+                    const size = 100;
+                    canvas.width = size;
+                    canvas.height = size;
+                    
+                    ctx.drawImage(img, 0, 0, size, size);
+                    const imageData = ctx.getImageData(0, 0, size, size);
+                    
+                    // Extract dominant colors
+                    const colors = this.extractDominantColors(imageData.data, 7);
+                    
+                    // Darken colors for background
+                    const darkenedColors = colors.map(color => this.darkenColor(color, 0.7));
+                    
+                    // Create gradient
+                    const gradient = this.createGradient(darkenedColors);
+                    this.updateGradient(gradient);
+                } catch (error) {
+                    console.error('Error extracting colors:', error);
+                    this.updateGradient(this.defaultGradient);
+                }
+            };
+            
+            img.onerror = () => {
+                console.error('Failed to load image');
+                this.updateGradient(this.defaultGradient);
+            };
+            
+            img.src = imageUrl;
+        },
+        
+        extractDominantColors(pixelData, numColors) {
+            const colorMap = {};
+            
+            // Sample every 4th pixel for performance
+            for (let i = 0; i < pixelData.length; i += 16) {
+                const r = pixelData[i];
+                const g = pixelData[i + 1];
+                const b = pixelData[i + 2];
+                const a = pixelData[i + 3];
+                
+                // Skip transparent pixels
+                if (a < 128) continue;
+                
+                // Quantize colors to reduce variations
+                const quantizedR = Math.round(r / 32) * 32;
+                const quantizedG = Math.round(g / 32) * 32;
+                const quantizedB = Math.round(b / 32) * 32;
+                
+                const key = `${quantizedR},${quantizedG},${quantizedB}`;
+                colorMap[key] = (colorMap[key] || 0) + 1;
+            }
+            
+            // Sort by frequency and get top colors
+            const sortedColors = Object.entries(colorMap)
+                .sort((a, b) => b[1] - a[1])
+                .slice(0, numColors)
+                .map(([rgb]) => {
+                    const [r, g, b] = rgb.split(',').map(Number);
+                    return { r, g, b };
+                });
+            
+            // If we didn't get enough colors, fill with variations
+            while (sortedColors.length < numColors && sortedColors.length > 0) {
+                const baseColor = sortedColors[sortedColors.length % sortedColors.length];
+                sortedColors.push(this.varyColor(baseColor));
+            }
+            
+            return sortedColors;
+        },
+        
+        darkenColor(color, amount) {
+            return {
+                r: Math.round(color.r * (1 - amount)),
+                g: Math.round(color.g * (1 - amount)),
+                b: Math.round(color.b * (1 - amount))
+            };
+        },
+        
+        varyColor(color) {
+            return {
+                r: Math.max(0, Math.min(255, color.r + (Math.random() - 0.5) * 40)),
+                g: Math.max(0, Math.min(255, color.g + (Math.random() - 0.5) * 40)),
+                b: Math.max(0, Math.min(255, color.b + (Math.random() - 0.5) * 40))
+            };
+        },
+        
+        rgbToHex(r, g, b) {
+            return '#' + [r, g, b].map(x => {
+                const hex = Math.round(x).toString(16);
+                return hex.length === 1 ? '0' + hex : hex;
+            }).join('');
+        },
+        
+        createGradient(colors) {
+            const stops = colors.map((color, index) => {
+                const position = (index / (colors.length - 1)) * 100;
+                const hex = this.rgbToHex(color.r, color.g, color.b);
+                return `${hex} ${position.toFixed(3)}%`;
+            });
+            
+            return `linear-gradient(135deg, ${stops.join(', ')})`;
+        }
+    }
+}
+</script>
+
+<style scoped>
 .sky {
     position: fixed;
     top: 0;
     left: 0;
     width: 100vw;
     height: 100vh;
-    background: black;
     overflow: hidden;
 }
 
-/* Common for both layers */
-.stars-layer {
+.gradient-layer {
     position: absolute;
-    top: 50%;
-    left: 50%;
-    transform-origin: center;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    transition: opacity 1s ease-in-out;
+    will-change: opacity;
 }
 
-.star {
-    position: absolute;
-    background: white;
-    border-radius: 50%;
-    opacity: 0;
-    animation: twinkle ease-in-out forwards;
+.sky.transitioning .gradient-layer {
+    filter: blur(20px);
 }
 
-/* Different rotation speeds */
-.stars-layer.fast {
-    animation: rotateSkyFast 180s linear infinite;
-    z-index: 2;
-    background-color: transparent;
-}
-
-.stars-layer.slow {
-    animation: rotateSkySlow 300s linear infinite;
+.gradient-layer-1 {
     z-index: 1;
 }
 
-@keyframes rotateSkyFast {
-    from {
-        transform: translate(-50%, -50%) rotate(0deg);
-    }
-
-    to {
-        transform: translate(-50%, -50%) rotate(360deg);
-    }
+.gradient-layer-2 {
+    z-index: 2;
 }
 
-@keyframes rotateSkySlow {
-    from {
-        transform: translate(-50%, -50%) rotate(0deg);
-    }
-
-    to {
-        transform: translate(-50%, -50%) rotate(360deg);
-    }
-}
-
-@keyframes twinkle {
-    0% {
-        opacity: 0;
-    }
-
-    10% {
-        opacity: var(--opacity);
-    }
-
-    90% {
-        opacity: var(--opacity);
-    }
-
-    100% {
-        opacity: 0;
-    }
-}
-
-#shooting-stars-layer {
-    position: fixed;
+.image-overlay {
+    position: absolute;
     top: 0;
     left: 0;
-    width: 100vw;
-    height: 100vh;
+    width: 50%;
+    height: 100%;
+    background-size: cover;
+    background-position: center;
+    background-repeat: no-repeat;
+    opacity: 0;
+    transition: opacity 1.5s ease-in-out;
     pointer-events: none;
-    z-index: 1000;
+    mask-image: linear-gradient(to right, black 0%, black 70%, transparent 100%);
+    -webkit-mask-image: linear-gradient(to right, black 0%, black 70%, transparent 100%);
+    z-index: 3;
+    animation: fadeIn 1s ease-in-out forwards;
 }
 
-
-.shooting-star {
-    position: absolute;
-    width: 0.5px;
-    height: 50px;
-    background: white;
-    opacity: 1;
-    transform: rotate(45deg);
-    animation: shoot 0.5s linear forwards;
-}
-
-@keyframes shoot {
-    0% {
+@keyframes fadeIn {
+    from {
         opacity: 0;
-        transform: translate(0, 0) rotate(45deg);
     }
-
-    10% {
-        opacity: 1;
-    }
-
-    90% {
-        opacity: 0;
-        transform: translate(-400px, 400px) rotate(45deg);
-    }
-
-    100% {
-        opacity: 0;
-        transform: translate(-450px, 450px) rotate(45deg);
+    to {
+        opacity: 0.03;
     }
 }
 </style>
-
-<script>
-export default {
-    name: 'backgroundComponent',
-    mounted() {
-        const fastLayer = document.getElementById("stars-fast");
-        const slowLayer = document.getElementById("stars-slow");
-        const shootingStarsLayer = document.getElementById("shooting-stars-layer");
-
-        const fastMin = 750;
-        const fastMax = 800;
-        const slowMin = 500;
-        const slowMax = 550;
-
-        let fastCount = 0;
-        let slowCount = 0;
-
-        const width = window.innerWidth;
-        const height = window.innerHeight;
-        const diagonal = Math.sqrt(width ** 2 + height ** 2);
-
-        // Apply diagonal size to both layers
-        [fastLayer, slowLayer].forEach(layer => {
-            layer.style.width = `${diagonal}px`;
-            layer.style.height = `${diagonal}px`;
-        });
-
-        function getBiasedSize(isSlow = false) {
-            const rand = Math.random();
-            if (isSlow) return Math.random() * 0.5 + 0.3; // Smaller for background
-            if (rand < 0.7) return Math.random() * 0.5 + 0.5;
-            else if (rand < 0.95) return Math.random() * 1 + 1;
-            else return Math.random() * 1 + 2.5;
-        }
-
-        function createStar(layer, isSlow = false) {
-            const count = isSlow ? slowCount : fastCount;
-            const max = isSlow ? slowMax : fastMax;
-            if (count >= max) return;
-
-            const star = document.createElement("div");
-            star.className = "star";
-
-            const x = Math.random() * diagonal;
-            const y = Math.random() * diagonal;
-
-            const size = getBiasedSize(isSlow);
-            // const opacity = isSlow 
-            //   ? (Math.random() * 0.2 + 0.2).toFixed(2) 
-            //   : (Math.random() * 0.4 + 0.6).toFixed(2);
-            const opacity = (Math.random() * 0.4 + 0.6).toFixed(2);
-
-            const duration = 15 + Math.random() * 15;
-
-            star.style.left = `${x}px`;
-            star.style.top = `${y}px`;
-            star.style.width = `${size}px`;
-            star.style.height = `${size}px`;
-            star.style.setProperty('--opacity', opacity);
-            star.style.animationDuration = `${duration}s`;
-            star.style.animationDelay = isSlow ? '1s' : '0s';
-
-            layer.appendChild(star);
-            if (isSlow) slowCount++;
-            else fastCount++;
-
-            // Cleanup
-            setTimeout(() => {
-                layer.removeChild(star);
-                if (isSlow) slowCount--; else fastCount--;
-                createStar(layer, isSlow);
-            }, (duration + 1) * 1000);
-        }
-
-        // Fill both layers
-        for (let i = 0; i < fastMin; i++) createStar(fastLayer, false);
-        for (let i = 0; i < slowMin; i++) createStar(slowLayer, true);
-
-
-
-        function createShootingStar() {
-            const star = document.createElement("div");
-            star.className = "shooting-star";
-
-            const centerX = window.innerWidth / 2;
-            const centerY = window.innerHeight / 2;
-
-            // Wider random spawn box
-            const offsetX = 1000;
-            const offsetY = 600;
-
-            const startX = centerX + (Math.random() - 0.5) * offsetX;
-            const startY = centerY - Math.random() * offsetY; // Always above center
-
-            // const startY = centerY + (Math.random() - 0.5) * offsetY;
-
-            star.style.left = `${startX}px`;
-            star.style.top = `${startY}px`;
-
-            shootingStarsLayer.appendChild(star);
-
-            setTimeout(() => {
-                shootingStarsLayer.removeChild(star);
-            }, 1000);
-        }
-
-
-        // Occasionally add a shooting star every 3–8 seconds
-        setInterval(() => {
-            if (Math.random() > 0.5) { // 70% chance to show
-                createShootingStar();
-            }
-        }, 5000);
-    }
-}
-
-</script>

@@ -5,7 +5,7 @@
         style=""
     >
     <div style="margin-top: 40vh;" v-if="!info.lyrics">
-        <span v-if="queueStore.isLoading" class="loader"></span>
+        <span v-if="isLoading" class="loader"></span>
         <div v-else style="width: 100%;">
             <img style="width: 40%;" src="../assets/icebear.png" alt="">
             <p style="color: white; margin-top: -3%;">Lyrics not available</p>
@@ -44,6 +44,7 @@ export default {
       autoscroll: true,
       userScrolling: false,
       scrollTimeout: null,
+      isLoading: this.queueStore.isLoading,
     };
   },
 
@@ -128,7 +129,6 @@ export default {
 
     resetScrollPosition() {
       const lyricContainer = this.$refs.lyricContainer;
-      console.log(lyricContainer, "Scroll position reset");
       if (lyricContainer) {
         lyricContainer.scrollTo({
           top: 0,
@@ -156,6 +156,17 @@ export default {
     });
 
     EventBus.on('updateCurrentTime', (val) => this.updateCurrentTime(val));
+
+    EventBus.on('loading_info_1', () => {
+      this.isLoading = true;
+      if(this.info.id != this.queueStore.queue[this.queueStore.isPlayingIndex]?.id){
+          this.info.lyrics = null;
+      }
+    });
+
+    EventBus.on('loading_info_0', () => {
+      this.isLoading = false;
+    });
 
     const lyricContainer = this.$refs.lyricContainer;
     if (lyricContainer) {

@@ -8,10 +8,23 @@
   </div>
   <div class="centerCont">
     <div class="centerTopCont">
-      <centerTopBackground></centerTopBackground>
-      <div style="border: 0px solid green; height: 80%; display: flex; align-items: center; justify-content: center; z-index: 1;">
+      <div style="border: 0px solid green; height: 65%; display: flex; align-items: center; justify-content: center; z-index: 1;">
         <h1 @click="this.$router.push({ path: '/' })" class="header">@12</h1>
-      </div>  
+      </div>
+      <div>
+        <div style="display: flex;">
+            <p style="color: white; font-size: small; font-weight: bold;">{{ days[new Date() .getDay()] }}</p>
+            <p style="font-weight: bold; font-size: small; margin: 0 0.5vw; color: #fc2c55;">|</p>
+            <p style="color: white; font-size: small; font-weight: bold; margin-right: 0.2vw;">{{new Date() .getDate()}}</p>
+            <p style="color: white; font-size: small; font-weight: bold;">{{months[new Date() .getMonth()]}}</p>
+        </div>
+        <div>
+            <div>
+              <router-link v-if="userStore.user.name" style="text-decoration: none; color: white; font-size: small;" to="/account">{{ greetUser() }}</router-link>
+              <router-link v-else style="text-decoration: none; color: white; font-size: small;" to="/signup">Login/Signup</router-link>
+            </div>
+        </div>
+      </div> 
       <div style="border: 0px solid green; height: 20%;">
         <v-text-field
           name="searchComponent"
@@ -56,13 +69,12 @@
 </template>
 
 <script>
-import { useCounterStore } from './stores/counter'; // Import the store
-import { usesearchResultsStore } from './stores/searchResults';
 import { useQueueStore } from './stores/queue';
-import PlayerComponent from './components/playerComponent.vue';
+import { useUserStore } from './stores/user';
 import { EventBus } from './eventBus';
 import { useToast } from 'vue-toastification';
 import { RouterView } from 'vue-router';
+import PlayerComponent from './components/playerComponent.vue';
 import QueueComponent from './components/queueComponent.vue';
 import lyricsComponent from './components/lyricsComponent.vue';
 import BackgroundComponent from './components/backgroundComponent.vue';
@@ -80,10 +92,9 @@ export default {
   },
   setup() {
     // Access the store in setup (reactive by default)
-    const counterStore = useCounterStore();
-    const searchResultsStore = usesearchResultsStore();
     const queueStore = useQueueStore();
-    return { counterStore, searchResultsStore, queueStore }; // Expose to template
+    const userStore = useUserStore();
+    return { queueStore, userStore }; // Expose to template
   },
   data: () => {
     return{
@@ -95,6 +106,8 @@ export default {
       searchRes: [],
       isPlaying: false,
       bgHTML: ref(''),
+      days: ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'],
+      months: ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'],
     }
   },
   methods: {
@@ -106,6 +119,16 @@ export default {
         this.$router.push({path: '/search', query: { q: query }});
       }
     }, 700),
+    greetUser(){
+      const hour = new Date().getHours();
+      if(hour < 12){
+          return `Good morning ${this.userStore.user.name.split(" ")[0]}`;
+      } else if(hour < 18){
+          return `Good afternoon ${this.userStore.user.name.split(" ")[0]}`;
+      } else {
+          return `Good evening ${this.userStore.user.name.split(" ")[0]}`;
+      }
+    },
   },
   watch: {
     songQuery(val){
@@ -134,8 +157,6 @@ export default {
         this.queueStore.isQueueVisible = false;
         this.queueStore.isLyricsVisible = false;
       }
-      // const res = await fetch('/mandala.html'); // path relative to public folder
-      // this.bgHTML.value = await res.text();
   }
 }
 
@@ -190,15 +211,21 @@ body{
   color: white;
   width: 100%;
 }
-.details>p {
-  text-align: center;
-  text-overflow: ellipsis;
-  font-size: 120%;
-  color: grey;
+
+.centerTopCont>div:nth-child(2){
+    width: 100%;
+    height: 5vh;
+    border: 0px solid red;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
 }
 
-.details>p:nth-child(1) {
-  font-size: 150%;
+.centerTopCont>div:nth-child(2)>div{
+    /* border: 1px solid yellow; */
+    display: inline-block;
+    color: white;
+    padding: 0.5vw  1.5vw;
 }
 
 .img-cont {
@@ -228,8 +255,8 @@ body{
 }
 
 .centerTopCont{
-  border:0px solid yellow;
-  height: 45vh;
+  border:0px solid green;
+  height: 40vh;
   width: 100%;
   overflow: hidden;
   position: relative;
@@ -271,24 +298,13 @@ body{
 }
 
 .withplayer {
-  height: 43vh;
+  height: 48vh;
   mask-image: linear-gradient(to top, rgba(0, 0, 0, 0) 0%, rgba(0, 0, 0, 1) 20%);
   -webkit-mask-image: linear-gradient(to top, rgba(0, 0, 0, 0) 0%, rgba(0, 0, 0, 1) 20%);
 }
 
 .withoutplayer {
-  height: 55vh;
-}
-
-.details {
-  position: relative;
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  height: 20vh;
-  margin: auto;
-  margin-top: 1%;
-  width: 50%;
+  height: 60vh;
 }
 
 .imgFade-enter-active, .imgFade-leave-active{
@@ -348,7 +364,7 @@ body{
 }
 
 .fade-enter-active, .fade-leave-active {
-  transition: opacity 0.7s ease;
+  transition: opacity 0.3s ease;
 }
 .fade-enter-from, .fade-leave-to {
   opacity: 0;
@@ -373,6 +389,28 @@ body{
   border: 0px solid white;
   width: 25%;
   height: 100vh;
+}
+
+.leftSticker{
+  position: fixed;
+  bottom: 0;
+  left: 0;
+  width: 25vw;
+  height: auto;
+  z-index: 1001;
+  display: flex;
+  justify-content: left;
+}
+
+.rightSticker{
+  position: absolute;
+  bottom: 0;
+  right: 0;
+  width: 25vw;
+  height: auto;
+  z-index: 1001;
+  display: flex;
+  justify-content: right;
 }
 
 .hlrcCont{
