@@ -60,6 +60,7 @@ export default {
             try {
                 const res = await fetch('/api/auth/send-verification-email', {
                     method: 'POST',
+                    credentials: 'include',
                     headers: { 'Content-Type': 'application/json' },
                     body: JSON.stringify({ email: this.email}),
                 });
