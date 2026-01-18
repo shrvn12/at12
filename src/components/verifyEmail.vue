@@ -58,7 +58,7 @@ export default {
             this.isResending = true;
 
             try {
-                const res = await fetch('/api/auth/send-verification-email', {
+                const res = await fetch('https://api-dqfspola6q-uc.a.run.app/auth/send-verification-email', {
                     method: 'POST',
                     credentials: 'include',
                     headers: { 'Content-Type': 'application/json' },
