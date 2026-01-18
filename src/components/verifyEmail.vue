@@ -103,7 +103,8 @@ export default {
     display: flex;
     justify-content: center;
     align-items: center;
-    height: 100%;
+    min-height: 100vh;
+    padding: 20px;
     color: white;
 }
 
@@ -113,17 +114,115 @@ export default {
     padding: 40px 30px;
     border-radius: 12px;
     max-width: 30vw;
+    width: 100%;
     box-shadow: 0 0 30px rgba(0, 0, 0, 0.5);
 }
 
 h2 {
     margin-top: 15px;
     font-weight: 600;
+    font-size: 1.75rem;
 }
 
 p {
     margin: 10px 0 20px;
     line-height: 1.5;
     color: #ccc;
+    font-size: 1rem;
+}
+
+/* Tablet devices (768px and below) */
+@media only screen and (max-width: 768px) {
+    .verify-card {
+        max-width: 50vw;
+        padding: 35px 25px;
+    }
+
+    h2 {
+        font-size: 1.5rem;
+    }
+
+    p {
+        font-size: 0.95rem;
+    }
+}
+
+/* Mobile devices (480px and below) */
+@media only screen and (max-width: 480px) {
+    .verify-container {
+        padding: 15px;
+        min-height: 100dvh; /* Use dvh for better mobile support */
+    }
+
+    .verify-card {
+        max-width: 100%;
+        padding: 30px 20px;
+        border-radius: 10px;
+    }
+
+    .verify-card .v-icon {
+        font-size: 40px !important;
+    }
+
+    h2 {
+        margin-top: 12px;
+        font-size: 1.35rem;
+    }
+
+    p {
+        font-size: 0.9rem;
+        margin: 12px 0 20px;
+        line-height: 1.6;
+    }
+
+    p br {
+        display: none;
+    }
+
+    .verify-card .v-btn {
+        width: 100%;
+        font-size: 0.9rem;
+    }
+}
+
+/* Small mobile devices (360px and below) */
+@media only screen and (max-width: 360px) {
+    .verify-card {
+        padding: 25px 15px;
+    }
+
+    .verify-card .v-icon {
+        font-size: 36px !important;
+    }
+
+    h2 {
+        font-size: 1.25rem;
+    }
+
+    p {
+        font-size: 0.85rem;
+    }
+}
+
+/* Landscape mobile orientation */
+@media only screen and (max-height: 500px) and (orientation: landscape) {
+    .verify-container {
+        min-height: 100vh;
+        align-items: flex-start;
+        padding-top: 20px;
+    }
+
+    .verify-card {
+        padding: 25px 30px;
+        margin: 20px auto;
+    }
+
+    h2 {
+        margin-top: 10px;
+    }
+
+    p {
+        margin: 8px 0 15px;
+    }
 }
 </style>

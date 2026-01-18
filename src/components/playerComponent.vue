@@ -574,10 +574,10 @@ html{
         width: 100%;
     }
     #cont>div:nth-child(1){
-    position: absolute;
-    width: 65%;
-    top: -45vh;
-    border: 0px solid red;
-}
+        position: absolute;
+        width: 65%;
+        top: -45vh;
+        border: 0px solid red;
+    }
 }
 </style>
