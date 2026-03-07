@@ -9,6 +9,7 @@ import 'vuetify/styles';
 import * as components from 'vuetify/components';
 import * as directives from 'vuetify/directives';
 import '@mdi/font/css/materialdesignicons.css';
+// require('dotenv').config();
 
 // Create Vue app with Vuetify and Toast plugins
 const app = createApp(App);

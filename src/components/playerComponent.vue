@@ -8,9 +8,13 @@
                 <transition name="fade" mode="out-in">
                     <p v-if="this.$route.name !== 'nowPlaying'" class="ellipse">{{ queue.length? queue[isPlayingIndex]?.title : "" }}</p>
                 </transition>
-                    <p style="color: white; font-size: small; margin: 0px; text-align: right; margin-left: auto;">{{`${formatTime(currentTime)} / ${formatTime(duration)}`}}</p>
-                    <v-icon @click="this.$route.name == 'nowPlaying'? goBack() : $router.push(`/playing/${queue[isPlayingIndex].id}`)" style="margin-left: 1%; transition: 0.25s;" :class="this.$route.name == 'nowPlaying'?'rotate' : ''" color="#fff">mdi-chevron-up</v-icon>
-                </div>                
+                <p style="color: white; font-size: small; margin: 0px; text-align: right; margin-left: auto; white-space: nowrap;">{{`${formatTime(currentTime)} / ${formatTime(duration)}`}}</p>
+                <div v-if="showVideo" class="glass">
+                    <p style="font-size: x-small; color: white; margin: 0px;">Video</p>
+                    <v-icon @click="this.$route.name == 'nowPlaying'? goBack() : $router.push(`/playing/${queue[isPlayingIndex].id}`)" style="transition: 0.25s;" :class="this.$route.name == 'nowPlaying'?'rotate' : ''" color="#fff" size="small">mdi-chevron-up</v-icon>
+                </div>
+                <v-icon v-else @click="this.$route.name == 'nowPlaying'? goBack() : $router.push(`/playing/${queue[isPlayingIndex].id}`)" style="transition: 0.25s;" :class="this.$route.name == 'nowPlaying'?'rotate' : ''" color="#fff">mdi-chevron-up</v-icon>
+                </div>
             <v-slider 
                 style="margin:  2px !important; height: 22px;"
                 v-model="currentTime"
@@ -28,7 +32,7 @@
                 @update:modelValue="seek"
             ></v-slider>
         </div>
-        <div style="border: 0px solid white; display: flex; justify-content: space-between; overflow: hidden; height: 6vh;">
+        <div style="border: 0px solid white; display: flex; justify-content: space-between; overflow: hidden; height: 6vh; align-items: center;">
             <v-btn @click="playPrev" variant="text" icon :ripple="true" title="Previous" base-color="transparent">
                     <v-icon size="large" color="#fff">mdi-skip-previous-outline</v-icon>
             </v-btn>
@@ -43,11 +47,11 @@
                 <v-icon v-if="repeatOnce && !repeat" size="default" color="#fff">mdi-repeat-once</v-icon>
                 <v-icon v-if="!repeat && !repeatOnce" size="default" color="#fff">mdi-repeat-off</v-icon>
             </v-btn>
-            <v-btn icon :ripple="!shuffleDisabled" variant="text" title="shuffle" base-color="transparent" :style="{cursor: shuffleDisabled ? 'not-allowed' : 'pointer'}">
+            <!-- <v-btn icon :ripple="!shuffleDisabled" variant="text" title="shuffle" base-color="transparent" :style="{cursor: shuffleDisabled ? 'not-allowed' : 'pointer'}">
                 <v-icon :disabled="shuffleDisabled" size="default" color="#fff">mdi-shuffle</v-icon>
-            </v-btn>
+            </v-btn> -->
 
-            <div style="border: 0px solid; width: 12%; margin-top: 1vw;">
+            <div style="border: 0px solid white; width: 12%; margin-top: 1vh; height: 100%;">
                 <v-slider
                 ref="volumeSlider"
                 v-model="volume"
@@ -63,12 +67,32 @@
                 ></v-slider>
             </div>
             
-            <v-btn @click="toggleQueue()" variant="text" icon :ripple="true" title="Queue" base-color="transparent">
-                    <v-icon size="default" color="#fff">{{queueStore.isQueueVisible? "mdi-list-box" : "mdi-list-box-outline"}}</v-icon>
-            </v-btn>
-            <v-btn icon :ripple="!lyricsDisabled" variant="text" title="Lyrics" base-color="transparent">
+            <!-- <v-btn @click="toggleQueue()" variant="text" icon :ripple="true" title="Queue" base-color="transparent">
+                    <v-icon size="default" color="#fff">{{queueStore.isQueueVisible? "mdi-account-music" : "mdi-list-box-outline"}}</v-icon>
+            </v-btn> -->
+
+            <v-btn-toggle class="glass" v-model="toggle_q_a" mandatory base-color="white" color="white"  variant="text" style="height: max-content; border: 0px solid white; padding: 0%;">
+                <v-btn @click="toggleQueue()" variant="text" icon :ripple="true" title="Queue" base-color="transparent" style="padding: 4%;">
+                    <v-icon size="small" color="#fff">mdi-list-box</v-icon>
+                </v-btn>
+                <v-btn @click="toggleArtist()" variant="text" icon :ripple="true" title="Artist" base-color="transparent" style="padding: 4%;">
+                    <v-icon size="small" color="#fff">mdi-account</v-icon>
+                </v-btn>
+            </v-btn-toggle>
+
+            <v-btn-toggle class="glass" v-model="toggle_l_g" mandatory base-color="white" color="white"  variant="text" style="height: max-content; border: 0px solid white; padding: 0%;">
+                <v-btn @click="toggleLyrics()" icon :ripple="!lyricsDisabled" variant="text" title="Lyrics" base-color="transparent" style="padding: 4%;">
+                    <v-icon size="small" color="#fff">mdi-music-box</v-icon>
+                </v-btn>
+
+                <v-btn @click="toggleGenre()" icon :ripple="!lyricsDisabled" variant="text" title="Genre" base-color="transparent" style="padding: 4%;">
+                    <v-icon size="small" color="#fff">mdi-album</v-icon>
+                </v-btn>
+            </v-btn-toggle>
+
+            <!-- <v-btn icon :ripple="!lyricsDisabled" variant="text" title="Lyrics" base-color="transparent">
                 <v-icon @click="toggleLyrics()" size="default" color="#fff">{{ queueStore.isLyricsVisible? 'mdi-music-box' : 'mdi-music-box-outline'}}</v-icon>
-            </v-btn>
+            </v-btn> -->
         </div>
     </div>
 </template>
@@ -103,6 +127,7 @@ export default {
     data: () => {
         return {
             toast: useToast(),
+            prodUrl: process.env.VUE_APP_PROD_URL,
             currentTime: 0,
             isPlaying: false,
             playerThumb: 0,
@@ -128,6 +153,8 @@ export default {
             playerReady: false,
             animationFrame: null,
             pendingVideoId: null,
+            toggle_q_a: 0,
+            toggle_l_g: 1
         }
     },
     methods: {
@@ -160,13 +187,25 @@ export default {
             }
         },
         toggleQueue() {
-            this.queueStore.isQueueVisible = !this.queueStore.isQueueVisible;
+            this.queueStore.isQueueVisible = true;
+            if (window.innerWidth < 675 && this.queueStore.isLyricsVisible){
+                this.queueStore.isLyricsVisible = false;
+            }
+        },
+        toggleArtist(){
+            this.queueStore.isQueueVisible = false;
             if (window.innerWidth < 675 && this.queueStore.isLyricsVisible){
                 this.queueStore.isLyricsVisible = false;
             }
         },
         toggleLyrics() {
-            this.queueStore.isLyricsVisible = !this.queueStore.isLyricsVisible;
+            this.queueStore.isLyricsVisible = true;
+            if (window.innerWidth < 675 && this.queueStore.isQueueVisible){
+                this.queueStore.isQueueVisible = false;
+            }
+        },
+        toggleGenre(){
+            this.queueStore.isLyricsVisible = false;
             if (window.innerWidth < 675 && this.queueStore.isQueueVisible){
                 this.queueStore.isQueueVisible = false;
             }
@@ -394,7 +433,7 @@ export default {
             }
         },
         async fetchQueue(trackId) {
-            return await fetch(`https://api-dqfspola6q-uc.a.run.app/music/getUpNexts/${trackId}`).then(
+            return await fetch(`${this.prodUrl}/music/getUpNexts/${trackId}`).then(
                 async (res) => {
                     res = await res.json();
                     res = res.map((item) => {
@@ -417,7 +456,7 @@ export default {
             this.queueStore.isPlayingIndex = 0;
             this.queueStore.queue = [track];
             this.queueStore.playlist = null;
-            console.log(this.queueStore.queue);
+            // console.log(this.queueStore.queue);
             this.play(track);
 
             track.id && this.fetchQueue(track.id).then((data) => {
@@ -567,6 +606,27 @@ html{
 
 .rotate {
     transform: rotate(180deg);
+}
+
+.glass{
+  display: flex;
+  padding: 0% 1%;
+  margin-left: 1%;
+  margin-bottom: 0.5%;
+  height: 2.5vh;
+  width: min-content;
+  align-items: center;
+  background: rgba(255, 255, 255, 0.05);
+  backdrop-filter: blur(10px);
+  -webkit-backdrop-filter: blur(10px);
+  border-radius: 7px;
+  box-shadow: 0 4px 30px rgba(0, 0, 0, 0.1);
+  color: white;
+  transition: background 0.3s ease;
+}
+
+.glass:hover {
+  background: rgba(255, 255, 255, 0.1);
 }
 
 @media (max-width: 675px) {

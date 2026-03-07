@@ -10,6 +10,7 @@ import signupComponent from '../components/signupComponent.vue';
 import accountComponent from '../components/accountComponent.vue';
 import verifyEmailComponent from '../components/verifyEmail.vue';
 import { useUserStore } from '../stores/user';
+import GenrePage from '../components/genrePage.vue';
 
 const routes = [
   { path: '/', name: 'home', component: homeComponent },
@@ -21,13 +22,16 @@ const routes = [
   { path: '/login', name: 'login', component: loginComponent },
   { path: '/signup', name: 'signup', component: signupComponent },
   { path: '/account', name: 'account', component: accountComponent },
-  { path: '/verify/:email', name: 'verifyEmail', component: verifyEmailComponent}
+  { path: '/verify/:email', name: 'verifyEmail', component: verifyEmailComponent},
+  { path: '/g/:genre', name: 'genre', component: GenrePage}
 ];
 
 const router = createRouter({
   history: createWebHistory(),
   routes
 });
+
+const prodURL = process.env.VUE_APP_PROD_URL;
 
 let skipNextPush = false;
 
@@ -38,10 +42,9 @@ router.beforeEach(async (to, from) => {
   // 1️⃣ Fetch user info only once
   if (!userStore.user.id) {
     try {
-      const res = await fetch('https://api-dqfspola6q-uc.a.run.app/auth/userInfo', {
+      const res = await fetch(`${prodURL}/auth/userInfo`, {
         method: 'GET',
-        credentials: 'include',
-        headers: { 'Content-Type': 'application/json' }
+        credentials: 'include'
       }).then(r => r.json());
 
       if (res.success) {

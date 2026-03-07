@@ -101,6 +101,7 @@ export default {
         return {
             searchedPLaylist: null,
             toast: useToast(),
+            prodUrl: process.env.VUE_APP_PROD_URL,
             songs: [],
             metaData: {},
             fulldesc: false,
@@ -116,7 +117,7 @@ export default {
         },
         async fetchPlaylist(id){
             try {
-                const res = await fetch(`https://api-dqfspola6q-uc.a.run.app/music/playlist/${id}`);
+                const res = await fetch(`${this.prodUrl}/music/playlist/${id}`);
                 this.searchedPLaylist = id;
                 const data = await res.json();
                 this.songs = data.items.items;

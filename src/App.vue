@@ -3,7 +3,8 @@
   <BackgroundComponent></BackgroundComponent>
   <div :class="queueStore.isQueueVisible? 'queueCont': 'hqueueCont'">
     <transition name="slide">
-      <QueueComponent v-if="queueStore.isQueueVisible && queueStore.queue.length"></QueueComponent>
+      <QueueComponent v-if="queueStore.queue.length && queueStore.isQueueVisible"></QueueComponent>
+      <artistFeedComponent v-else></artistFeedComponent>
     </transition>
   </div>
   <div class="centerCont">
@@ -27,23 +28,22 @@
       </div> 
       <div style="border: 0px solid green; height: 20%;">
         <v-text-field
-          name="searchComponent"
-          class="input"
-          ref="autocomplete"
-          v-model="songQuery"
-          :loading="isLoading"
-          color="#fc2c55"
-          variant="outlined"
-          clearable
-          placeholder="What do you want to play?"
-          :menu-icon="''"
-          theme="dark"
-          bg-color="#000000"
-          spellcheck="false"
-          autocomplete="off"
-          persistent-clear
-          @update:modelValue="searchSong"
-        ></v-text-field>
+        v-model="songQuery"
+        name="searchComponent"
+        class="input"
+        ref="autocomplete"
+        :loading="isLoading"
+        color="#fc2c55"
+        variant="outlined"
+        clearable
+        placeholder="What do you want to play?"
+        theme="dark"
+        bg-color="#000000d"
+        spellcheck="false"
+        autocomplete="off"
+        persistent-clear
+        @keydown.enter="executeSearch"
+      ></v-text-field>
       </div>
     </div>
     <div :class="queue.length !== 0 ? 'withplayer' : 'withoutplayer'" style="width: 100%;"
@@ -58,6 +58,8 @@
   <div :class="queueStore.isLyricsVisible ? 'lrcCont' :'hlrcCont'">
      <transition name="slideRight">
       <lyricsComponent v-if="queueStore.isLyricsVisible  && queueStore.queue.length"></lyricsComponent>
+      <GenreComponent v-else></GenreComponent>
+
     </transition>
   </div>
 </div>
@@ -80,6 +82,8 @@ import lyricsComponent from './components/lyricsComponent.vue';
 import BackgroundComponent from './components/backgroundComponent.vue';
 import centerTopBackground from './components/centerTopBackground.vue';
 import { ref } from 'vue';
+import ArtistFeedComponent from './components/artistFeedComponent.vue';
+import GenreComponent from './components/genreComponent.vue';
 export default {
   name: 'App',
   components: {
@@ -89,6 +93,8 @@ export default {
     lyricsComponent,
     BackgroundComponent,
     centerTopBackground,
+    ArtistFeedComponent,
+    GenreComponent
   },
   setup() {
     // Access the store in setup (reactive by default)
@@ -119,6 +125,22 @@ export default {
         this.$router.push({path: '/search', query: { q: query }});
       }
     }, 700),
+    executeSearch() {
+      // 1. Clean the query
+      const query = this.songQuery?.trim();
+
+      // 2. Don't search if it's empty
+      if (!query) return;
+
+      // 3. Navigate to search page
+      this.$router.push({
+        path: '/search',
+        query: { q: query }
+      }).catch(err => {
+        // Ignore errors if navigating to the exact same URL/query
+        if (err.name !== 'NavigationDuplicated') throw err;
+      });
+    },
     greetUser(){
       const hour = new Date().getHours();
       if(hour < 12){
@@ -243,7 +265,7 @@ body{
   top: 50%; /* Align the image to the vertical center */
   left: 50%; /* Align the image to the horizontal center */
   transform: translate(-50%, -50%); /* Center the image properly */
-  height: 135%; /* Set the height to fill the div */
+  height: 105%; /* Set the height to fill the div */
   width: 100%; /* Set the width to fill the div */
   object-fit: cover;
 }
@@ -447,6 +469,22 @@ body{
   }
 }
 
+.glass{
+  /* display: flex; */
+  align-items: center;
+  background: #ffffff0d;
+  backdrop-filter: blur(10px);
+  -webkit-backdrop-filter: blur(10px);
+  border-radius: 50px;
+  box-shadow: 0 4px 30px rgba(0, 0, 0, 0.1);
+  color: white;
+  transition: background 0.3s ease;
+}
+
+.glass:hover {
+  background: rgba(255, 255, 255, 0.1);
+}
+
 
 @media (max-width: 675px) {
   svg{
@@ -483,5 +521,50 @@ body{
     width: 0%;
   }
 }
+
+.loader {
+  width: 48px;
+  height: 40px;
+  margin-top: 30px;
+  display: inline-block;
+  position: relative;
+  background: #FFF;
+  border-radius: 15% 15% 35% 35%;
+}
+.loader::after {
+  content: '';  
+  box-sizing: border-box;
+  position: absolute;
+  left: 45px;
+  top: 8px;
+  border: 4px solid #FFF;
+  width: 16px;
+  height: 20px;
+  border-radius: 0 4px 4px 0;
+}
+.loader::before {
+  content: '';  
+  position: absolute;
+  width: 1px;
+  height: 10px;
+  color: #FFF;
+  top: -15px;
+  left: 11px;
+  box-sizing: border-box;
+  animation: animloader 1s ease infinite;
+}
+
+@keyframes animloader {
+    0% {
+  box-shadow: 2px 0px rgba(255, 255, 255, 0), 12px 0px rgba(255, 255, 255, 0.3), 20px 0px rgba(255, 255, 255, 0);
+}
+    50% {
+  box-shadow: 2px -5px rgba(255, 255, 255, 0.5), 12px -3px rgba(255, 255, 255, 0.5), 20px -2px rgba(255, 255, 255, 0.6);
+}
+    100% {
+  box-shadow: 2px -8px rgba(255, 255, 255, 0), 12px -5px rgba(255, 255, 255, 0), 20px -5px rgba(255, 255, 255, 0);
+}
+}
+
 
 </style>

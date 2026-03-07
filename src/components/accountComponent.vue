@@ -46,12 +46,13 @@ export default {
     data() {
         return {
             toast: useToast(),
+            prodUrl: process.env.VUE_APP_PROD_URL,
             dialog: false,
         };
     },
     beforeMount() {
         if (!this.userStore.user.name) {
-            fetch('https://api-dqfspola6q-uc.a.run.app/auth/userInfo', {
+            fetch(`${this.prodUrl}/auth/userInfo`, {
                 method: 'GET',
                 credentials: 'include',
                 headers: {
@@ -83,7 +84,7 @@ export default {
         },
         confirmLogout() {
             this.dialog = false;
-            fetch('https://api-dqfspola6q-uc.a.run.app/auth/logout', {
+            fetch(`${this.prodUrl}/auth/logout`, {
                 method: 'POST',
                 credentials: 'include',
                 headers: {

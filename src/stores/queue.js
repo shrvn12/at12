@@ -4,7 +4,7 @@ export const useQueueStore = defineStore('queue', {
   state: () => ({
     queue: [],
     isQueueVisible: true,
-    isLyricsVisible: true,
+    isLyricsVisible: false,
     isPlayingIndex: 0,
     isPlaying: false,
     player: null,
@@ -39,7 +39,7 @@ export const useQueueStore = defineStore('queue', {
       this.player = player;
     },
     async fetchInfo(id){
-      return await fetch(`https://api-dqfspola6q-uc.a.run.app/music/getInfo?id=${id}`).then(async (res) => {
+      return await fetch(`${process.env.VUE_APP_PROD_URL}/music/getInfo?id=${id}`).then(async (res) => {
           res = await res.json();
           return res;
         }).catch((err) => {

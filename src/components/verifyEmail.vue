@@ -28,6 +28,7 @@ export default {
     data() {
         return {
             toast: useToast(),
+            prodUrl: process.env.VUE_APP_PROD_URL,
             isResending: false,
             email: this.$route.params.email || '',
             countdown: 0,
@@ -58,7 +59,7 @@ export default {
             this.isResending = true;
 
             try {
-                const res = await fetch('https://api-dqfspola6q-uc.a.run.app/auth/send-verification-email', {
+                const res = await fetch(`${this.prodUrl}/auth/send-verification-email`, {
                     method: 'POST',
                     credentials: 'include',
                     headers: { 'Content-Type': 'application/json' },

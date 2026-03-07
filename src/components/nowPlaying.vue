@@ -31,8 +31,6 @@
                   </transition>
                   <div style="position: absolute; bottom: 0; left: 0;">
                     <v-icon style="cursor: pointer;" color="#ffffff">{{'mdi-heart'}}</v-icon>
-
-                    <v-icon v-if="info.isAudioOnly == false" :title="showVideo? 'Audio Only' : 'Video (if available)'" @click="showVideo = !showVideo" style="cursor: pointer;" color="#ffffff">{{ !showVideo? 'mdi-youtube-tv' : 'mdi-ipod'}}</v-icon>
                   </div>
               </div>
           </transition>
@@ -52,6 +50,7 @@ export default {
   data() {
     return {
       toast: useToast(),
+      prodUrl: process.env.VUE_APP_PROD_URL,
       info:{},
       isLoading: false,
       player: document.getElementById('player'),
@@ -100,7 +99,7 @@ export default {
           this.isLoading = false;
           return;
         }
-        return fetch(`https://api-dqfspola6q-uc.a.run.app/music/getInfo?id=${id}`).then(async (res) => {
+        return fetch(`${this.prodUrl}/music/getInfo?id=${id}`).then(async (res) => {
           res = await res.json();
           this.info = res;
           this.queueStore.addStats(this.isPlayingIndex ,res);
@@ -168,9 +167,6 @@ export default {
           }
         }
     },
-    showVideo(val){
-      EventBus.emit('show_video', val);
-    }
   },
 };
 </script>

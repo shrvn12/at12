@@ -54,6 +54,7 @@ export default {
       remember: true,
       loading: false,
       toast: useToast(),
+      prodUrl: process.env.VUE_APP_PROD_URL,
     };
   },
   methods: {
@@ -68,17 +69,17 @@ export default {
       // Placeholder logic
       console.log('Logging in with', this.email, this.password);
       this.loading = true;
-      fetch('https://api-dqfspola6q-uc.a.run.app/auth/login', {
+      fetch(`${this.prodUrl}/auth/login`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
         },
-        credentials: 'include',
         body: JSON.stringify({
           email: this.email,
           password: this.password,
           remember: this.remember,
         }),
+        credentials: 'include',
       }).then(async (res) => {
         this.loading = false;
         res = await res.json();

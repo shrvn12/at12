@@ -189,6 +189,7 @@ export default {
     data() {
         return {
             toast: useToast(),
+            prodUrl: process.env.VUE_APP_PROD_URL,
             isLoading: false,
             isLoadingArtists: false,
             searchRes: [],
@@ -232,7 +233,7 @@ export default {
             this.querySearched = this.searchQuery;
             this.isLoading = true;
             // Song search
-            fetch(`https://api-dqfspola6q-uc.a.run.app/music/searchSong?query=${query}`)
+            fetch(`${this.prodUrl}/music/searchSong?query=${query}`)
                 .then(async (res) => {
                     this.isLoading = false;
                     res = await res.json();
@@ -262,7 +263,7 @@ export default {
             this.artists = [];
             const query = artistIds.map(id => `id=${encodeURIComponent(id)}`).join('&');
             this.isLoadingArtists = true;
-            fetch(`https://api-dqfspola6q-uc.a.run.app/music/artist?${query}`)
+            fetch(`${this.prodUrl}/music/artist?${query}`)
                 .then(async (res) => {
                     res = await res.json();
                     this.artists = res;

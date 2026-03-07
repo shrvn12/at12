@@ -40,6 +40,7 @@ export default {
   data() {
     return {
       toast: useToast(),
+      prodUrl: process.env.VUE_APP_PROD_URL,
       name: '',
       email: '',
       password: '',
@@ -62,7 +63,7 @@ export default {
       // Placeholder logic
       console.log('Signing up with', this.name, this.email, this.password);
       this.loading = true;
-      fetch('https://api-dqfspola6q-uc.a.run.app/auth/register', {
+      fetch(`${this.prodUrl}/auth/register`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',

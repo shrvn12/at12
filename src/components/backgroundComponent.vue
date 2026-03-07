@@ -33,7 +33,18 @@ export default {
             this.extractColorsAndCreateGradient(this.imageUrl);
         }
         EventBus.on('update-background', (newImageUrl) => {
-            console.log('Received update-background event with URL:', newImageUrl);
+            if (newImageUrl && newImageUrl !== this.imageUrl) {
+                this.extractColorsAndCreateGradient(newImageUrl);
+                this.imageUrl = newImageUrl;
+            } else {
+                this.gradientStyle = this.defaultGradient;
+            }
+        });
+
+        EventBus.on('update-background-home', (newImageUrl) => {
+            if (this.imageUrl) {
+                return;
+            }
             if (newImageUrl && newImageUrl !== this.imageUrl) {
                 this.extractColorsAndCreateGradient(newImageUrl);
                 this.imageUrl = newImageUrl;
@@ -75,7 +86,7 @@ export default {
                     const colors = this.extractDominantColors(imageData.data, 7);
                     
                     // Darken colors for background
-                    const darkenedColors = colors.map(color => this.darkenColor(color, 0.7));
+                    const darkenedColors = colors.map(color => this.darkenColor(color, 0.8));
                     
                     // Create gradient
                     const gradient = this.createGradient(darkenedColors);

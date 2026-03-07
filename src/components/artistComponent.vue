@@ -1,6 +1,6 @@
 <template>
-    <div v-if="!info.name" style="display: flex; justify-content: center; align-items: center; height: 45vh;" >
-        <img src="../assets/loading.gif" alt="">
+    <div v-if="!info.name" style="display: flex; justify-content: center; align-items: center; min-height: 52vh; margin-top: 2vh;" >
+        <v-skeleton-loader color="#9a9a9a25" type="table-heading, article, article" width="100%" height="100%"></v-skeleton-loader>
     </div>
     <div v-else class="cont">
       <div style="width: 100%; display: flex;">
@@ -11,7 +11,8 @@
           <img
             :src="(info?.thumbnails[0]?.url) || (info?.additionalInfo?.thumbnails[0]?.url) || (info.channelInfo?.snippet?.thumbnails && info.channelInfo?.snippet?.thumbnails.high.url)"
             alt=""
-            style="width: 100%; height: 100%; object-fit: cover; display: block;"
+            style="width: 100%; aspect-ratio: 1/1; object-fit: cover; display: block;"
+            @error="e => e.target.src = `https://ui-avatars.com/api/?name=${encodeURIComponent(info?.name)}&background=random`"
           />
         </div>
 
@@ -125,7 +126,6 @@ import { EventBus } from '@/eventBus';
 import { useQueueStore } from '../stores/queue';
 import MusicBar from './musicBar.vue';
 
-
 export default {
   name: "atristComponent",
   computed: {
@@ -144,6 +144,7 @@ export default {
     return {
       message: "This is a placeholder for the at12 component.",
       toast: useToast(),
+      prodUrl: process.env.VUE_APP_PROD_URL,
       info: {},
       showFullDesc: false,
       playlist: []
@@ -157,12 +158,13 @@ export default {
       if (!id){
         return;
       }
-        fetch(`https://api-dqfspola6q-uc.a.run.app/music/artist?id=${id}`).then(async (res) => {
+        fetch(`${this.prodUrl}/music/artist?id=${id}`).then(async (res) => {
             if (!res.ok) {
                 this.toast.error("Failed to fetch artist data.");
             }
             res = await res.json()
             this.info = res[0];
+            EventBus.emit('update-background', (this.info?.thumbnails[1]?.url) || (this.info?.additionalInfo?.thumbnails[1]?.url) || (this.info.channelInfo?.snippet?.thumbnails && this.info.channelInfo?.snippet?.thumbnails.medium.url));
             this,this.getPlaylist(this.info.name)
         }).catch(error => {
             console.error("Error fetching artist data:", error);
@@ -174,7 +176,7 @@ export default {
       if (!q){
         return;
       }
-        fetch(`https://api-dqfspola6q-uc.a.run.app/music/search/playlist?q=${q}`).then(async (res) => {
+        fetch(`${this.prodUrl}/music/search/playlist?q=${q}`).then(async (res) => {
             if (!res.ok) {
                 this.toast.error("Failed to fetch playlist.");
             }

@@ -109,6 +109,7 @@ export default {
     data(){
         return{
             toast: useToast(),
+            prodUrl: process.env.VUE_APP_PROD_URL,
             genres: ['Romance', 'Workout', 'Feel good', 'Party', 'Relax', 'Energize', 'commute', 'sleep', 'sad', 'Focus'],
             selectedGenre: '',
             songs: [],
@@ -125,7 +126,7 @@ export default {
     },
     beforeMount(){
         this.fetchPlaylist().then(() => {
-            EventBus.emit('update-background', this.homePlayList?.metaData?.items[0]?.snippet?.thumbnails?.maxres?.url);
+            EventBus.emit('update-background-home', this.homePlayList?.metaData?.items[0]?.snippet?.thumbnails?.maxres?.url);
         });
     },
     methods:{
@@ -141,12 +142,11 @@ export default {
         },
         async fetchPlaylist(){
             try {
-                const res = await fetch(`https://api-dqfspola6q-uc.a.run.app/music/playlist/PL4fGSI1pDJn5RgLW0Sb_zECecWdH_4zOX`);
+                const res = await fetch(`${this.prodUrl}/music/playlist/PL4fGSI1pDJn5RgLW0Sb_zECecWdH_4zOX`);
                 const data = await res.json();
                 this.homePlayList = data;
-                const firstSongInfo = await fetch(`https://api-dqfspola6q-uc.a.run.app/music/info?id=${data.items.items[0].snippet.resourceId.videoId}`);
+                const firstSongInfo = await fetch(`${this.prodUrl}/music/info?id=${data.items.items[0].snippet.resourceId.videoId}`);
                 const firstSongData = await firstSongInfo.json();
-                console.log(firstSongData);
                 this.heroSongInfo = firstSongData;
             } catch (error) {
                 console.error(error);
@@ -156,7 +156,7 @@ export default {
         async searchPlaylist(query){
             this.isLoading = true;
             try {
-                const res = await fetch(`https://api-dqfspola6q-uc.a.run.app/music/search/playlist?q=${query}`);
+                const res = await fetch(`${this.prodUrl}/music/search/playlist?q=${query}`);
                 const data = await res.json();
                 this.isLoading = false;
                 return data;
@@ -172,7 +172,7 @@ export default {
                 query = 'trending in';
             }
             this.isLoading = true;
-            fetch(`https://api-dqfspola6q-uc.a.run.app/music/getQueue?query=${query} india`).then(
+            fetch(`${this.prodUrl}/music/getQueue?query=${query} india`).then(
                 async(res) => {
                     this.isLoading = false;
                     res = await res.json();
@@ -447,11 +447,6 @@ export default {
 
 .arrow:hover {
     background: rgba(0, 0, 0, 0.85);
-}
-
-.saturate {
-    filter: saturate(1);
-    transition: filter 0.1s ease;
 }
 
 .fade-enter-active, .fade-leave-active {

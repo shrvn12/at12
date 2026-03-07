@@ -36,7 +36,10 @@
                 v-show="hoveredIndex === index"
                 @click.stop="deleteFromQueue(index)"
                 color="grey"
-                style="width: 30px; height: 30px; position: absolute; right: 7px; top: 50%; transform: translateY(-50%); cursor: pointer; border: 1px solid grey; border-radius: 10px; background-color: #000;"
+                size="small"
+                bg-color="#000000d"
+                class="glass"
+                style="width: 25px; height: 25px; position: absolute; right: 7px; top: 50%; transform: translateY(-50%); cursor: pointer; border: 1px solid grey; border-radius: 10px;"
               >
               mdi-delete-outline
               </v-icon>
