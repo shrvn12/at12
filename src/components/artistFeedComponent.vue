@@ -11,7 +11,7 @@
             style="border: 1px solid transparent;"
         >
           <div class="artistCard" :class="artistId == artist.id ? 'highlight' : ''" @click="$router.push(`/artist/${artist.id}`)">
-            <img :src="artist.thumbnail" style="width: 3.3vw; border-radius: 50%; margin-left: 1%; display: block;" alt="">
+            <img :src="artist.thumbnail" style="width: 3.3vw; border-radius: 50%; margin-left: 1%; display: block;" alt="" @error="e => e.target.src = `https://ui-avatars.com/api/?name=${encodeURIComponent(artist?.name)}`">
             <p style="color: white; margin-left: 1vw; font-size: small;">{{ artist.name }}</p>
           </div>
         </v-list-item>
@@ -140,6 +140,11 @@ export default {
   border: 0px solid;
   -ms-overflow-style: none;
   z-index: 1;
+  scrollbar-width: none;
+}
+
+::-webkit-scrollbar {
+    display: none;
 }
 
 .artistCard{
