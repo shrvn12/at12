@@ -1,73 +1,60 @@
 <template>
-<div style="border: 0px solid white; height: 100vh; display: flex; position: relative;">
-  <BackgroundComponent></BackgroundComponent>
-  <div :class="queueStore.isQueueVisible? 'queueCont': 'hqueueCont'">
-    <transition name="slide">
-      <QueueComponent v-if="queueStore.queue.length && queueStore.isQueueVisible"></QueueComponent>
-      <artistFeedComponent v-else></artistFeedComponent>
-    </transition>
-  </div>
-  <div class="centerCont">
-    <div class="centerTopCont">
-      <div style="border: 0px solid green; height: 65%; display: flex; align-items: center; justify-content: center; z-index: 1;">
-        <h1 @click="this.$router.push({ path: '/' })" class="header">@12</h1>
-      </div>
-      <div>
-        <div style="display: flex;">
-            <p style="color: white; font-size: small; font-weight: bold;">{{ days[new Date() .getDay()] }}</p>
-            <p style="font-weight: bold; font-size: small; margin: 0 0.5vw; color: #fc2c55;">|</p>
-            <p style="color: white; font-size: small; font-weight: bold; margin-right: 0.2vw;">{{new Date() .getDate()}}</p>
-            <p style="color: white; font-size: small; font-weight: bold;">{{months[new Date() .getMonth()]}}</p>
-        </div>
-        <div>
-            <div>
-              <router-link v-if="userStore.user.name" style="text-decoration: none; color: white; font-size: small;" to="/account">{{ greetUser() }}</router-link>
-              <router-link v-else style="text-decoration: none; color: white; font-size: small;" to="/signup">Login/Signup</router-link>
+  <div style="border: 0px solid white; height: 100vh; display: flex; position: relative;">
+    <BackgroundComponent></BackgroundComponent>
+    <div :class="queueStore.isQueueVisible ? 'queueCont' : 'hqueueCont'">
+      <transition name="slide">
+        <QueueComponent v-if="queueStore.queue.length && queueStore.isQueueVisible"></QueueComponent>
+        <artistFeedComponent v-else></artistFeedComponent>
+      </transition>
+    </div>
+    <div class="centerCont">
+      <div class="centerTopCont">
+        <div
+          style="border: 0px solid green; height: 9vh; display: flex; align-items: center; justify-content: space-between; z-index: 1; width: 95%; margin: auto;">
+          <h1 @click="this.$router.push({ path: '/' })" class="header">@12</h1>
+          <div style="height: 100%; width: 30%; display: flex; align-items: center; justify-content: right;">
+            <div style="display: flex;">
+              <p style="color: white; font-size: small; font-weight: bold;">{{ days[new Date().getDay()] }}</p>
+              <p style="font-weight: bold; font-size: small; margin: 0 0.5vw; color: #fc2c55;">|</p>
+              <p style="color: white; font-size: small; font-weight: bold; margin-right: 0.2vw;">{{ new Date()
+                .getDate()}}</p>
+              <p style="color: white; font-size: small; font-weight: bold;">{{ months[new Date().getMonth()] }}</p>
             </div>
+            <router-link v-if="userStore.user.name" style="text-decoration: none; color: white; font-size: small;"
+              to="/account">
+              <img src="https://ui-avatars.com/api/?name=shravanSingh" alt="" style="width: 52%; border-radius: 50px;">
+            </router-link>
+            <router-link v-else style="text-decoration: none; color: white; font-size: small;"
+              to="/signup"><p style="margin-left: 1vw;">Login/Signup</p></router-link>
+          </div>
         </div>
-      </div> 
-      <div style="border: 0px solid green; height: 20%;">
-        <v-text-field
-        v-model="songQuery"
-        name="searchComponent"
-        class="input"
-        ref="autocomplete"
-        :loading="isLoading"
-        color="#fc2c55"
-        variant="outlined"
-        clearable
-        placeholder="What do you want to play?"
-        theme="dark"
-        bg-color="#000000d"
-        spellcheck="false"
-        autocomplete="off"
-        persistent-clear
-        @keydown.enter="executeSearch"
-      ></v-text-field>
+        <div style="border: 0px solid green; height: 8vh;">
+          <v-text-field v-model="songQuery" name="searchComponent" class="input" ref="autocomplete" :loading="isLoading"
+            color="#fc2c55" variant="outlined" clearable placeholder="What do you want to play?" theme="dark"
+            bg-color="#000000d" spellcheck="false" autocomplete="off" persistent-clear
+            @keydown.enter="executeSearch"></v-text-field>
+        </div>
+      </div>
+      <div :class="queue.length !== 0 ? 'withplayer' : 'withoutplayer'" style="width: 100%; border: 0px solid green;">
+        <router-view v-slot="{ Component }">
+          <keep-alive max="5">
+            <component :is="Component" :key="$route.name" />
+          </keep-alive>
+        </router-view>
       </div>
     </div>
-    <div :class="queue.length !== 0 ? 'withplayer' : 'withoutplayer'" style="width: 100%;"
-     >
-     <router-view v-slot="{ Component }">
-        <keep-alive max="5">
-          <component :is="Component" :key="$route.name" />
-        </keep-alive>
-      </router-view>      
+    <div :class="queueStore.isLyricsVisible ? 'lrcCont' : 'hlrcCont'">
+      <transition name="slideRight">
+        <lyricsComponent v-if="queueStore.isLyricsVisible && queueStore.queue.length"></lyricsComponent>
+        <GenreComponent v-else></GenreComponent>
+      </transition>
     </div>
   </div>
-  <div :class="queueStore.isLyricsVisible ? 'lrcCont' :'hlrcCont'">
-     <transition name="slideRight">
-      <lyricsComponent v-if="queueStore.isLyricsVisible  && queueStore.queue.length"></lyricsComponent>
-      <GenreComponent v-else></GenreComponent>
-
+  <div>
+    <transition name="fade">
+      <player-component v-show="queue.length || isPlaying"></player-component>
     </transition>
   </div>
-</div>
-<div>
-  <transition name="fade">
-    <player-component v-show="queue.length || isPlaying"></player-component>
-  </transition>
-</div>
 </template>
 
 <script>
@@ -103,7 +90,7 @@ export default {
     return { queueStore, userStore }; // Expose to template
   },
   data: () => {
-    return{
+    return {
       toast: useToast(),
       searchQuery: null,
       isLoading: false,
@@ -117,12 +104,12 @@ export default {
     }
   },
   methods: {
-    searchSong: debounce(function(query){
-      if (!query){
+    searchSong: debounce(function (query) {
+      if (!query) {
         return;
       }
-      if(query.length){
-        this.$router.push({path: '/search', query: { q: query }});
+      if (query.length) {
+        this.$router.push({ path: '/search', query: { q: query } });
       }
     }, 700),
     executeSearch() {
@@ -141,52 +128,52 @@ export default {
         if (err.name !== 'NavigationDuplicated') throw err;
       });
     },
-    greetUser(){
+    greetUser() {
       const hour = new Date().getHours();
-      if(hour < 12){
-          return `Good morning ${this.userStore.user.name.split(" ")[0]}`;
-      } else if(hour < 18){
-          return `Good afternoon ${this.userStore.user.name.split(" ")[0]}`;
+      if (hour < 12) {
+        return `Good morning ${this.userStore.user.name.split(" ")[0]}`;
+      } else if (hour < 18) {
+        return `Good afternoon ${this.userStore.user.name.split(" ")[0]}`;
       } else {
-          return `Good evening ${this.userStore.user.name.split(" ")[0]}`;
+        return `Good evening ${this.userStore.user.name.split(" ")[0]}`;
       }
     },
   },
   watch: {
-    songQuery(val){
-      if (!val){
+    songQuery(val) {
+      if (!val) {
         this.searchRes = [];
       }
     },
   },
   mounted() {
-      EventBus.on('searchQuery', (query) => {
-        this.songQuery = query;
-      })
-      EventBus.on('loading_0', () => {
-        this.isLoading = false;
-      })
-      EventBus.on('loading_1', () => {
-        this.isLoading = true;
-      })
-      EventBus.on('queue', (val) => {
-        this.queue = val;
-      }),
+    EventBus.on('searchQuery', (query) => {
+      this.songQuery = query;
+    })
+    EventBus.on('loading_0', () => {
+      this.isLoading = false;
+    })
+    EventBus.on('loading_1', () => {
+      this.isLoading = true;
+    })
+    EventBus.on('queue', (val) => {
+      this.queue = val;
+    }),
       EventBus.on('isPlaying', (val) => {
         this.isPlaying = val;
       })
-      if (window.innerWidth < 675) {
-        this.queueStore.isQueueVisible = false;
-        this.queueStore.isLyricsVisible = false;
-      }
+    if (window.innerWidth < 675) {
+      this.queueStore.isQueueVisible = false;
+      this.queueStore.isLyricsVisible = false;
+    }
   }
 }
 
 function debounce(func, delay) {
   let timer;
-  return function(...args) {
+  return function (...args) {
     const queryString = args[0]?.trim()
-    this.searchQuery = queryString?.length? queryString : null;
+    this.searchQuery = queryString?.length ? queryString : null;
     clearTimeout(timer);
     timer = setTimeout(() => {
       func.apply(this, args);
@@ -196,17 +183,20 @@ function debounce(func, delay) {
 </script>
 
 <style>
-html{
+html {
   overflow: hidden;
   margin: 0px;
   padding: 0px;
   height: 100%;
 }
-body{
+
+body {
   overflow: hidden;
   margin: 0px;
-  -webkit-font-smoothing: antialiased; /* For WebKit-based browsers */
-  -moz-osx-font-smoothing: grayscale;  /* For macOS */
+  -webkit-font-smoothing: antialiased;
+  /* For WebKit-based browsers */
+  -moz-osx-font-smoothing: grayscale;
+  /* For macOS */
 }
 
 .background {
@@ -228,27 +218,28 @@ body{
   background-color: #000;
   height: 100vh;
 }
-.input{
+
+.input {
   margin: auto;
   color: white;
   width: 100%;
   z-index: 100;
 }
 
-.centerTopCont>div:nth-child(2){
-    width: 100%;
-    height: 5vh;
-    border: 0px solid red;
-    display: flex;
-    align-items: center;
-    justify-content: space-between;
+.centerTopCont>div:nth-child(2) {
+  width: 100%;
+  height: 5vh;
+  border: 0px solid red;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
 }
 
-.centerTopCont>div:nth-child(2)>div{
-    /* border: 1px solid yellow; */
-    display: inline-block;
-    color: white;
-    padding: 0.5vw  1.5vw;
+.centerTopCont>div:nth-child(2)>div {
+  /* border: 1px solid yellow; */
+  display: inline-block;
+  color: white;
+  padding: 0.5vw 1.5vw;
 }
 
 .img-cont {
@@ -260,109 +251,103 @@ body{
   border-radius: 10px;
 }
 
-.thumbnail{
-  position: absolute; /* Position the image absolutely */
-  top: 50%; /* Align the image to the vertical center */
-  left: 50%; /* Align the image to the horizontal center */
-  transform: translate(-50%, -50%); /* Center the image properly */
-  height: 105%; /* Set the height to fill the div */
-  width: 100%; /* Set the width to fill the div */
+.thumbnail {
+  position: absolute;
+  /* Position the image absolutely */
+  top: 50%;
+  /* Align the image to the vertical center */
+  left: 50%;
+  /* Align the image to the horizontal center */
+  transform: translate(-50%, -50%);
+  /* Center the image properly */
+  height: 105%;
+  /* Set the height to fill the div */
+  width: 100%;
+  /* Set the width to fill the div */
   object-fit: cover;
 }
 
-.centerCont{
+.centerCont {
   border: 0px solid white;
   width: 50%;
   height: 100vh;
   z-index: 1;
 }
 
-.centerTopCont{
-  border:0px solid green;
-  height: 40vh;
+.centerTopCont {
+  border: 0px solid green;
+  height: 20vh;
   width: 100%;
   overflow: hidden;
   position: relative;
 }
 
-.head {
-  height: 20vh;
-  stroke: #fc2c55;
-  font-size: 175%;
-  font-weight: 700;
-  stroke-width: 2;
-  animation: textAnimate 7s infinite alternate;
-}
-
-.head_s {
-  height: 20vh;
-  font-size: 175%;
-  stroke: #fc2c55;
-  font-weight: 700;
-  stroke-width: 2;
-  animation: textAnimate 7s infinite alternate;
-  animation-play-state: paused;
-}
-
 @keyframes textAnimate {
   0% {
     stroke-dasharray: 0 50%;
-    stroke-dashoffset:  20%;
+    stroke-dashoffset: 20%;
     fill: #ffffff
-
   }
-  
+
   100% {
     stroke-dasharray: 50% 0;
     stroke-dashoffset: -20%;
     fill: #000
   }
-  
+
 }
 
 .withplayer {
-  height: 48vh;
+  height: 68vh;
   mask-image: linear-gradient(to top, rgba(0, 0, 0, 0) 0%, rgba(0, 0, 0, 1) 20%);
   -webkit-mask-image: linear-gradient(to top, rgba(0, 0, 0, 0) 0%, rgba(0, 0, 0, 1) 20%);
 }
 
 .withoutplayer {
-  height: 60vh;
+  height: 80vh;
 }
 
-.imgFade-enter-active, .imgFade-leave-active{
+.imgFade-enter-active,
+.imgFade-leave-active {
   transition: opacity 0.25s ease,
 }
 
-.imgFade-enter-from{
+.imgFade-enter-from {
   opacity: 0;
 }
 
-.imgFade-enter-to, .imgFade-leave-from{
+.imgFade-enter-to,
+.imgFade-leave-from {
   opacity: 1;
 }
 
-.imgFade-leave-to{
+.imgFade-leave-to {
   opacity: 0;
 }
 
-.slide-enter-active, .slide-leave-active {
+.slide-enter-active,
+.slide-leave-active {
   transition: transform 0.3s ease;
 }
+
 .slide-enter-from {
   transform: translateX(-100%);
 }
-.slide-leave-to{
+
+.slide-leave-to {
   transform: translateX(-100%);
 }
 
-.slideRight-enter-active, .slideRight-leave-active {
+.slideRight-enter-active,
+.slideRight-leave-active {
   transition: transform 0.3s ease;
 }
+
 .slideRight-enter-from {
   transform: translateX(100%);
 }
-.slideRight-leave-to{
+
+.slideRight-leave-to {
   transform: translateX(100%);
 }
 
@@ -386,35 +371,40 @@ body{
   opacity: 1;
 }
 
-.fade-enter-active, .fade-leave-active {
+.fade-enter-active,
+.fade-leave-active {
   transition: opacity 0.3s ease;
 }
-.fade-enter-from, .fade-leave-to {
+
+.fade-enter-from,
+.fade-leave-to {
   opacity: 0;
 }
-.fade-enter-to, .fade-leave-from {
+
+.fade-enter-to,
+.fade-leave-from {
   opacity: 1;
 }
 
-.queueCont{
+.queueCont {
   border: 0px solid white;
   width: 25%;
   height: 100vh;
 }
 
-.hqueueCont{
+.hqueueCont {
   border: 0px solid white;
   width: 25%;
   height: 100vh;
 }
 
-.lrcCont{
+.lrcCont {
   border: 0px solid white;
   width: 25%;
   height: 100vh;
 }
 
-.leftSticker{
+.leftSticker {
   position: fixed;
   bottom: 0;
   left: 0;
@@ -425,7 +415,7 @@ body{
   justify-content: left;
 }
 
-.rightSticker{
+.rightSticker {
   position: absolute;
   bottom: 0;
   right: 0;
@@ -436,27 +426,28 @@ body{
   justify-content: right;
 }
 
-.hlrcCont{
+.hlrcCont {
   border: 0px solid white;
   width: 25%;
   height: 100vh;
 }
 
 .header {
-	font-size: 6rem;
-	font-weight:  100;
-	letter-spacing: 2px;
+  font-size: 3rem;
+  font-weight: 100;
+  letter-spacing: 2px;
   font-weight: 700;
-	text-align: center;
-	color: #f35626;
-	background-image: -webkit-linear-gradient(92deg, #f35626, #feab3a);
-	-webkit-background-clip: text;
-	-webkit-text-fill-color: transparent;
-	-webkit-animation: hue 10s infinite linear;
+  text-align: center;
+  /* color: #f35626; */
+  color: #fff;
+  /* background-image: -webkit-linear-gradient(92deg, #f35626, #feab3a); */
+  /* -webkit-background-clip: text; */
+  /* -webkit-text-fill-color: transparent; */
+  /* -webkit-animation: hue 10s infinite linear; */
   cursor: pointer;
-  user-select: none; 
-  -webkit-user-select: none; 
-  -moz-user-select: none; 
+  user-select: none;
+  -webkit-user-select: none;
+  -moz-user-select: none;
   -ms-user-select: none;
 }
 
@@ -464,12 +455,13 @@ body{
   from {
     -webkit-filter: hue-rotate(0deg);
   }
+
   to {
     -webkit-filter: hue-rotate(-360deg);
   }
 }
 
-.glass{
+.glass {
   /* display: flex; */
   align-items: center;
   background: #ffffff0d;
@@ -487,37 +479,45 @@ body{
 
 
 @media (max-width: 675px) {
-  svg{
+  svg {
     width: 100%;
   }
 
-  .head_s{
+  .head_s {
     margin: auto;
   }
-  .centerCont{
+
+  .centerCont {
     width: 100%;
   }
-  .centerTopCont{
+
+  .centerTopCont {
     height: 30vh;
   }
-  .withplayer{
+
+  .withplayer {
     height: 50vh;
   }
-  .withoutplayer{
+
+  .withoutplayer {
     height: 70vh;
   }
-  .queueCont{
+
+  .queueCont {
     position: absolute;
     width: 100%;
   }
-  .lrcCont{
+
+  .lrcCont {
     position: absolute;
     width: 100%;
   }
-  .hlrcCont{
+
+  .hlrcCont {
     width: 0%;
   }
-  .hqueueCont{
+
+  .hqueueCont {
     width: 0%;
   }
 }
@@ -531,8 +531,9 @@ body{
   background: #FFF;
   border-radius: 15% 15% 35% 35%;
 }
+
 .loader::after {
-  content: '';  
+  content: '';
   box-sizing: border-box;
   position: absolute;
   left: 45px;
@@ -542,8 +543,9 @@ body{
   height: 20px;
   border-radius: 0 4px 4px 0;
 }
+
 .loader::before {
-  content: '';  
+  content: '';
   position: absolute;
   width: 1px;
   height: 10px;
@@ -555,16 +557,16 @@ body{
 }
 
 @keyframes animloader {
-    0% {
-  box-shadow: 2px 0px rgba(255, 255, 255, 0), 12px 0px rgba(255, 255, 255, 0.3), 20px 0px rgba(255, 255, 255, 0);
-}
-    50% {
-  box-shadow: 2px -5px rgba(255, 255, 255, 0.5), 12px -3px rgba(255, 255, 255, 0.5), 20px -2px rgba(255, 255, 255, 0.6);
-}
-    100% {
-  box-shadow: 2px -8px rgba(255, 255, 255, 0), 12px -5px rgba(255, 255, 255, 0), 20px -5px rgba(255, 255, 255, 0);
-}
-}
+  0% {
+    box-shadow: 2px 0px rgba(255, 255, 255, 0), 12px 0px rgba(255, 255, 255, 0.3), 20px 0px rgba(255, 255, 255, 0);
+  }
 
+  50% {
+    box-shadow: 2px -5px rgba(255, 255, 255, 0.5), 12px -3px rgba(255, 255, 255, 0.5), 20px -2px rgba(255, 255, 255, 0.6);
+  }
 
+  100% {
+    box-shadow: 2px -8px rgba(255, 255, 255, 0), 12px -5px rgba(255, 255, 255, 0), 20px -5px rgba(255, 255, 255, 0);
+  }
+}
 </style>

@@ -4,8 +4,8 @@
         <v-icon style="cursor: pointer;" color="#ffffff" @click="goBack()">mdi-arrow-left</v-icon>
     </div>
     <div class="playerCont">
-        <div class="imgcont">
-            <div v-if="!showVideo" style="position: absolute; overflow: hidden; height: 100%; aspect-ratio: 1/1; left: 0; border: 0px solid white;">
+        <div class="imgcont" style="border: 0px solid white;">
+            <div v-if="!showVideo" style="position: absolute; overflow: hidden; height: 60%; aspect-ratio: 1/1; left: 0; border: 0px solid white;">
               <transition name="fade" mode="out-in">
                 <v-skeleton-loader v-if="isLoading || !info?.thumbnails?.standard?.url || !info.stats" color="#80808027" type="card"></v-skeleton-loader>
                 <img v-else class="thumbnail" :src="info?.thumbnails?.standard?.url" alt="">
@@ -14,23 +14,23 @@
         </div>
         <div class="infocont">
           <transition name="fade" mode="out-in">
-              <v-skeleton-loader  v-if="isLoading || !info?.stats" style="width: 100%" height="90%" color="#80808027" type="article"></v-skeleton-loader>
+              <v-skeleton-loader  v-if="isLoading || !info?.stats" style="width: 100%" color="#80808027" type="article"></v-skeleton-loader>
               <div v-else class="info">
-                  <p v-if="info.title" style="width: 25vw; font-weight: bold; color: #ffffff; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;">{{ info?.title}}</p>
-                  <div v-for="(artist, index) in info.artist" :key="index">
-                    <p v-if="info.artist" :class="artist.id ? 'underline' : ''" style="color: #ffffff; font-size: small;" @click=" artist.id && $router.push(`/artist/${artist.id}`)">{{artist?.name}}</p>
-                  </div>
-                  <transition name="fade" mode="out-in">
-                    <p v-if="info?.stats?.viewCount" style="font-size: small"><v-icon color="#fff" size="small">mdi-calendar-outline</v-icon> {{ new Date(info?.publishedAt).toLocaleDateString() }}</p>
-                  </transition>
-                  <transition name="fade" mode="out-in">
-                    <p v-if="info?.stats?.likeCount" style="font-size: small"><v-icon color="#fff" size="small">mdi-heart-multiple</v-icon> {{ formatNumber(info?.stats?.likeCount) }}</p>
-                  </transition>
-                  <transition name="fade" mode="out-in">
-                    <p v-if="info?.stats?.viewCount" style="font-size: small"><v-icon color="#fff" size="small">mdi-eye</v-icon> {{ formatNumber(info?.stats?.viewCount) }}</p>
-                  </transition>
-                  <div style="position: absolute; bottom: 0; left: 0;">
-                    <v-icon style="cursor: pointer;" color="#ffffff">{{'mdi-heart'}}</v-icon>
+                  <p v-if="info.title" style="width: 95%; font-weight: bold; color: #ffffff;">{{ info?.title}}</p>
+                  <!-- <transition name="fade" mode="out-in"> -->
+                    <div class="stats">
+                      <p v-if="info?.publishedAt">{{ new Date(info?.publishedAt).toLocaleDateString().split("/").join("-") }}</p>
+                      <p>|</p>
+                      <p v-if="info?.stats?.likeCount"> {{ formatNumber(info?.stats?.likeCount) }} likes</p>
+                      <p>|</p>
+                      <p v-if="info?.stats?.viewCount"> {{ formatNumber(info?.stats?.viewCount) }} views</p>
+                    </div>
+                  <!-- </transition> -->
+                  <div class="artistInfo">
+                    <div v-for="(artist, index) in info.artist" :key="index">
+                      <p v-if="info.artist" :class="artist.id ? 'underline' : ''" @click=" artist.id && $router.push(`/artist/${artist.id}`)">{{artist?.name}}</p>
+                      <p v-if="index<(info.artist.length-1)">|</p>
+                    </div>
                   </div>
               </div>
           </transition>
@@ -174,7 +174,7 @@ export default {
 <style scoped>
 #cont{
     width: 100%;
-    height: 43vh;
+    height: 100%;
     border: 0px solid white;
     position: relative;
 }
@@ -206,22 +206,53 @@ export default {
 .infocont{
   border: 0px solid white;
   height: 100%;
-  width: 50%;
+  width: 100%;
   overflow-y: auto;
   overflow-x: hidden;
 }
 
 .imgcont{
   width: 25%;
-  height: 100%; 
+  height: 62%; 
+  border: 3px solid white;
+}
+
+.stats{
+  display: flex;
+  margin-top: 1vh;
+  margin-bottom: 1vh;
+}
+
+.stats>p{
+  color: #ffffffd6;
+  font-size: 75%;
+  margin-right: 5px;
+}
+
+.artistInfo{
+  display: flex;
+}
+
+.artistInfo>div{
+  display: flex;
+}
+
+.artistInfo p{
+  color: #fff;
+  font-size: small;
+}
+
+.artistInfo>div>p:nth-child(2){
+  margin-left: 1vh;
+  margin-right: 1vh;
 }
 
 .playerCont{
   border: 0px solid white;
   width: 100%;
   height: 100%;
-  display: flex; 
-  align-items: start;
+  /* display: flex;  */
+  /* align-items: start; */
   margin-top: 1%;
 }
 

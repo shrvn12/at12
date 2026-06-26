@@ -7,31 +7,36 @@
     <div v-if="isLoading" style="height: 70vh; display: flex; align-items: center; justify-content: center;">
       <span class="loader"></span>
     </div>
-    <div v-else style="border: 1px solid transparent; height: 70vh; display: flex; align-items: center; position: relative; justify-content: center;" @mouseenter="hovered = true" @mouseleave="hovered=false">
+    <div v-else style="border: 1px solid transparent; height: 77vh; display: flex; align-items: center; position: relative; justify-content: center;" @mouseenter="hovered = true" @mouseleave="hovered=false">
       <p v-if="!hideLyrics && this.info && this.info.lyrics && this.info.lyrics.length" style="color: white; text-align: center; width: 80%; margin: auto; font-size: xx-large; font-weight: bold;">
         {{ this.info.lyrics[currentLyricIndex]?.text || '♪♪' }}
       </p>
       <div v-else>
-        <div v-if="queueStore.queue.length && info.artist.length" style="border: 0px solid white; width: 90%; margin: auto;">
+        <div v-if="queueStore.queue.length && info.artist?.length" style="border: 0px solid white; width: 90%; margin: auto;">
           <div style="height: 20vh; aspect-ratio: 1/1; margin: auto; border-radius: 10px; position: relative; overflow: hidden;">
-            <img loading="lazy" :src="info.artistDetails?.thumbnails[0]?.url" alt="" class="thumbnail" @error="e => e.target.src = `https://ui-avatars.com/api/?name=${encodeURIComponent(info.artistDetails?.name || channelTitle || info.title)}`"
->
+            <img loading="lazy" :src="info.artistDetails?.thumbnails[0]?.url" alt="" class="thumbnail" @error="e => e.target.src = `https://ui-avatars.com/api/?name=${encodeURIComponent(info.artistDetails?.name || channelTitle || info.title)}`">
           </div>
-          <p style="color: white; font-size: x-large; font-weight: bold; margin-top: 1vh;">{{ info.artistDetails?.name || info.artist[0].name || info.channelTitle }}</p>
+          <p style="color: white; font-size: x-large; font-weight: bold; margin-top: 1vh;">{{ info.artistDetails?.name || info.artist[0]?.name || info.channelTitle }}</p>
           <p style="color: #ffffff97; font-size: small; cursor: pointer; text-decoration: underline;" @click="$router.push(`/artist/${info.artistDetails.artistId}`)">View artist</p>
         </div>
         <p v-else style="color: white; font-weight: bold; font-size: x-large; margin: 5%;">Play something to see synced lyrics</p>
       </div>
       
-      <div v-if="hovered && info.lyrics" style="position: absolute; bottom: 0; right: 0; margin: auto; display: flex; align-items: center;">
-        <p style="color: white; font-size: small;">Hide lyrics</p>
-        <v-switch
-          v-model="hideLyrics"
-          hide-details
-          inset
-          density="compact"
-          style="scale: 0.5; margin-left: -7%;"
-        ></v-switch>
+      <div v-if="info.lyrics" style="position: absolute; bottom: 0; right: 0; margin: auto; display: flex; align-items: center; justify-content: right; width: 90%;">
+        <div @click="toggleLyrics" class="glass" style="width: 35%; border: 1px solid white; padding: 1%; cursor: pointer; margin-right: 1vw;"><p style="font-size: x-small; pointer-events:none" >Show full lyrics</p></div>
+        <div style="display: flex; align-items: center; justify-content: space-evenly;">
+          <p style="color: white; font-size: small;">Hide lyrics</p>
+          <v-switch
+            v-model="hideLyrics"
+            hide-details
+            inset
+            density="compact"
+            style="scale: 0.5; margin-left: -7%;"
+          ></v-switch>
+        </div>
+      </div>
+      <div v-else-if="queueStore.queue.length || queueStore.isPlaying" style="position: absolute; bottom: 0; margin: auto; display: flex; align-items: center;">
+        <p style="color: white; font-size: small;">Lyrics not available for this track</p>
       </div>
     </div>
 
@@ -140,22 +145,28 @@ export default {
         this.currentLyricIndex = idx;
       }
     },
+    toggleLyrics() {
+      this.queueStore.isLyricsVisible = true;
+      if (window.innerWidth < 675 && this.queueStore.isQueueVisible) {
+        this.queueStore.isQueueVisible = false;
+      }
+    },
   },
   activated(){
     if (this.info.id !== this.queueStore.queue[this.queueStore.isPlayingIndex]?.id) {
      this.info = this.queueStore.queue[this.queueStore.isPlayingIndex];
-      if(!this.info.lyrics){
-        this.hideLyrics = true;
-      }
+      // if(!this.info.lyrics){
+      //   this.hideLyrics = true;
+      // }
     }
   },
   mounted() {
     EventBus.on('info', (info) => {
         this.currentLyricIndex = null; // Reset current lyric index on new info
         this.info = info;
-        if(!this.info.lyrics){
-          this.hideLyrics = true;
-        }
+        // if(!this.info.lyrics){
+        //   this.hideLyrics = true;
+        // }
     });
     EventBus.on('updateCurrentTime', (val) => this.updateCurrentTime(val));
 
@@ -193,6 +204,9 @@ export default {
   overflow-y: auto;
   scrollbar-width: none;
   -ms-overflow-style: none;
+  /* display: flex;
+  flex-direction: column;
+  justify-content: space-between; */
 }
 
 @media screen and (max-width: 675px) {

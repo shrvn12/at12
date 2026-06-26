@@ -2,7 +2,9 @@
     <div
         ref="lyricContainer"
         class="lyricContainer"
-        style=""
+        style="border: 0px solid white; position: relative; width: 100%"
+        @mouseenter="showCloseButton = true"
+        @mouseleave="showCloseButton = false"
     >
     <div style="margin-top: 40vh;" v-if="!info.lyrics">
         <span v-if="isLoading" class="loader"></span>
@@ -16,6 +18,10 @@
             <p onmouseover="this.style.textDecoration = 'underline'" onmouseout="this.style.textDecoration = 'none'" style="font-weight: bold; font-size: large;" @click="index != currentLyricIndex && jumpToTime(line.time)" :class="currentLyricIndex !== null && index <= currentLyricIndex? 'active' : 'inactive'">{{ line.text || '♪♪' }}</p>
         </v-list-item>
     </v-list>
+    <div v-if="showCloseButton" class="glass" style="position: absolute; bottom: 2vh; left: 0; right: 0; margin: auto; display: flex; align-items: center; margin: auto; justify-content: center; width: 50%; height: 5vh; cursor: pointer" @click="queueStore.isLyricsVisible = false">
+      <v-icon size="small" style="margin-right: 5%; pointer-events: none;">mdi-close</v-icon>
+      <p style="font-size:small; color: #fff; pointer-events: none;">close</p>
+    </div>
     </div>
 </template>
 
@@ -45,6 +51,7 @@ export default {
       userScrolling: false,
       scrollTimeout: null,
       isLoading: this.queueStore.isLoading,
+      showCloseButton: false
     };
   },
 

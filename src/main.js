@@ -29,5 +29,6 @@ app.use(Toast, {
   closeOnClick: true,
   pauseOnHover: true,
   draggable: true,
+  transition: "Vue-Toastification__fade", 
 });
 app.mount('#app');

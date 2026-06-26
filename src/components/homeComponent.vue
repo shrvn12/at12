@@ -11,7 +11,7 @@
                     <!-- Song Title and Artist -->
                     <div class="hero-content" v-if="heroSongInfo.title">
                         <h1 class="hero-title">
-                            {{ heroSongInfo.title }}
+                            {{ heroSongInfo.title.split("(")[0] }}
                         </h1>
                         <p v-if="heroSongInfo.artists" class="hero-artist">
                             {{ heroSongInfo.artists[0]?.name ||
@@ -215,13 +215,13 @@ export default {
         }
     },
     mounted(){
-        this.searchGenreSong(this.selectedGenre);
-        this.searchPlaylist('bollywood').then((res) => {
-            if(res){
-                res = res.filter(item => item?.thumbnails[1]?.width == item?.thumbnails[1]?.height);
-                this.bollywood = res;
-            }
-        });
+        // this.searchGenreSong(this.selectedGenre);
+        // this.searchPlaylist('bollywood').then((res) => {
+        //     if(res){
+        //         res = res.filter(item => item?.thumbnails[1]?.width == item?.thumbnails[1]?.height);
+        //         this.bollywood = res;
+        //     }
+        // });
     },
     watch: {
         selectedGenre(newVal) {
@@ -236,8 +236,8 @@ export default {
     height: 100%;
     width: 100%;
     overflow-y: auto;
-    mask-image: linear-gradient(to bottom, rgba(0, 0, 0, 0) 0%, rgba(0, 0, 0, 1) 15%);
-    -webkit-mask-image: linear-gradient(to bottom, rgba(0, 0, 0, 0) 0%, rgba(0, 0, 0, 1) 15%);
+    /* mask-image: linear-gradient(to bottom, rgba(0, 0, 0, 0) 0%, rgba(0, 0, 0, 1) 15%);
+    -webkit-mask-image: linear-gradient(to bottom, rgba(0, 0, 0, 0) 0%, rgba(0, 0, 0, 1) 15%); */
     scrollbar-width: none;
     scrollbar-color: transparent transparent;
 }
@@ -255,6 +255,9 @@ export default {
 
 .hero-image-container {
     position: relative;
+    border-radius: 30px;
+    overflow: hidden;
+    border: 2px solid #ffffffb0;
 }
 
 .hero-image {

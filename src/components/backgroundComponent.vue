@@ -13,9 +13,12 @@ export default {
     data() {
         return {
             imgUrl: null,
-            gradientStyle1: 'linear-gradient(135deg, #051200 0%, #02010d 16.667%, #050a1a 33.333%, #0f1d16 50%, #1f1906 66.667%, #350400 83.333%, #500501 100%)',
-            gradientStyle2: 'linear-gradient(135deg, #051200 0%, #02010d 16.667%, #050a1a 33.333%, #0f1d16 50%, #1f1906 66.667%, #350400 83.333%, #500501 100%)',
-            defaultGradient: 'linear-gradient(135deg, #051200 0%, #02010d 16.667%, #050a1a 33.333%, #0f1d16 50%, #1f1906 66.667%, #350400 83.333%, #500501 100%)',
+            // gradientStyle1: 'linear-gradient(135deg, #051200 0%, #02010d 16.667%, #050a1a 33.333%, #0f1d16 50%, #1f1906 66.667%, #350400 83.333%, #500501 100%)',
+            // gradientStyle2: 'linear-gradient(135deg, #051200 0%, #02010d 16.667%, #050a1a 33.333%, #0f1d16 50%, #1f1906 66.667%, #350400 83.333%, #500501 100%)',
+            gradientStyle1: '#000000',
+            gradientStyle2: '#000000',
+            // defaultGradient: 'linear-gradient(135deg, #051200 0%, #02010d 16.667%, #050a1a 33.333%, #0f1d16 50%, #1f1906 66.667%, #350400 83.333%, #500501 100%)',
+            defaultGradient: '#000000',
             currentLayer: 1
         }
     },

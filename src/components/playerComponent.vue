@@ -1,7 +1,7 @@
 <template>
     <div id="cont">
         <div v-show="showVideo && this.$route.name == 'nowPlaying'">
-            <div id="player" style="height: 30vh; width: 90%;"></div>
+            <div id="player" style="height: 40vh; border: 0px solid white;"></div>
         </div>
         <div style="border: 0px solid green; width: 100%; height: min-content; margin-top: -5px;">
             <div style=" z-index: 1;cursor: pointer; border: 0px solid white; position: absolute; width: 100%; margin-top: -1%; height: min-content; display: flex; justify-content: space-between; align-items: center;" @click="() => { $router.push(`/playing/${queue[isPlayingIndex].id}`) }">
@@ -9,9 +9,9 @@
                     <p v-if="this.$route.name !== 'nowPlaying'" class="ellipse">{{ queue.length? queue[isPlayingIndex]?.title : "" }}</p>
                 </transition>
                 <p style="color: white; font-size: small; margin: 0px; text-align: right; margin-left: auto; white-space: nowrap;">{{`${formatTime(currentTime)} / ${formatTime(duration)}`}}</p>
-                <div v-if="showVideo" class="glass">
+                <div v-if="showVideo" class="glass" @click="this.$route.name == 'nowPlaying'? goBack() : $router.push(`/playing/${queue[isPlayingIndex].id}`)">
                     <p style="font-size: x-small; color: white; margin: 0px;">Video</p>
-                    <v-icon @click="this.$route.name == 'nowPlaying'? goBack() : $router.push(`/playing/${queue[isPlayingIndex].id}`)" style="transition: 0.25s;" :class="this.$route.name == 'nowPlaying'?'rotate' : ''" color="#fff" size="small">mdi-chevron-up</v-icon>
+                    <v-icon style="transition: 0.25s;" :class="this.$route.name == 'nowPlaying'?'rotate' : ''" color="#fff" size="small">mdi-chevron-up</v-icon>
                 </div>
                 <v-icon v-else @click="this.$route.name == 'nowPlaying'? goBack() : $router.push(`/playing/${queue[isPlayingIndex].id}`)" style="transition: 0.25s;" :class="this.$route.name == 'nowPlaying'?'rotate' : ''" color="#fff">mdi-chevron-up</v-icon>
                 </div>
@@ -544,8 +544,9 @@ html{
 
 #cont>div:nth-child(1){
     position: absolute;
-    width: 50%;
-    top: -38vh;
+    width: 90%;
+    top: -62vh;
+    margin: auto;
     border: 0px solid red;
 }
 
