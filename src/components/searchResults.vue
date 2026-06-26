@@ -1,5 +1,5 @@
 <template>
-    <div class="cont"  :style="{height: queueStore.queue.length? '42vh' : '100%'}">
+    <div class="cont">
         <div style="width: 100%; display: flex;">
             <v-icon style="cursor: pointer;" color="#ffffff" @click="goBack()">mdi-arrow-left</v-icon>
         </div>
@@ -327,6 +327,7 @@ export default {
     -ms-overflow-style: none;
     overflow-y: scroll;
     scrollbar-width: none;
+    height: 100%;
 }
 .cont::-webkit-scrollbar {
     display: none;
