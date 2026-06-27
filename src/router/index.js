@@ -52,6 +52,7 @@ router.beforeEach(async (to, from) => {
       if (res.success) {
         userStore.user = res;
       }
+      userInfoFetched = true;
     } catch (err) {
       console.error('Error fetching user info:', err);
     }
