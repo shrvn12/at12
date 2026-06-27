@@ -35,12 +35,14 @@ const prodURL = process.env.VUE_APP_PROD_URL;
 
 let skipNextPush = false;
 
+let userInfoFetched = false; // Flag to track if user info has been fetched
+
 router.beforeEach(async (to, from) => {
   const userStore = useUserStore();
   console.log('Navigating from', from.name, 'to', to.name);
 
   // 1️⃣ Fetch user info only once
-  if (!userStore.user.id) {
+  if (!userInfoFetched) {
     try {
       const res = await fetch(`${prodURL}/auth/userInfo`, {
         method: 'GET',
