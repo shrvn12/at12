@@ -22,7 +22,7 @@
             </div>
             <router-link v-if="userStore.user.name" style="text-decoration: none; color: white; font-size: small;"
               to="/account">
-              <img src="https://ui-avatars.com/api/?name=shravanSingh" alt="" style="width: 52%; border-radius: 50px;">
+              <img :src="`https://ui-avatars.com/api/?name=${userStore.user.name}`" alt="" style="width: 52%; border-radius: 50px;">
             </router-link>
             <router-link v-else style="text-decoration: none; color: white; font-size: small;"
               to="/signup"><p style="margin-left: 1vw;">Login/Signup</p></router-link>
