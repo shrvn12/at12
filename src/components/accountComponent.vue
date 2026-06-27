@@ -5,7 +5,7 @@
         </div>
 
         <div class="profile">
-            <img src="https://upload.wikimedia.org/wikipedia/commons/0/0b/Netflix-avatar.png" alt="User Avatar"
+            <img :src="`https://ui-avatars.com/api/?name=${userStore.user.name}`" alt="User Avatar"
                 class="avatar" />
             <h2>{{ userStore.user.name }}</h2>
             <p>{{ userStore.user.email }}</p>
@@ -14,7 +14,7 @@
         <div class="settings">
             <h3>Settings</h3>
             <hr />
-            <div class="setting-item" @click="changePassword">Change Password</div>
+            <!-- <div class="setting-item" @click="changePassword">Change Password</div> -->
             <div class="setting-item" @click="dialog = true">Sign Out</div>
         </div>
     </div>

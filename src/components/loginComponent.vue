@@ -26,9 +26,9 @@
 
         <div class="signup">
           <p>New to @12? <router-link to="/signup">Sign up now</router-link>.</p>
-          <small>
+          <!-- <small>
             This page is protected by Google reCAPTCHA to ensure you're not a bot.
-          </small>
+          </small> -->
         </div>
         <br>
         <br>
