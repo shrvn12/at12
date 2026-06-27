@@ -21,7 +21,7 @@
           </div>
         </div>
 
-        <h1 style="color: white; margin-top: 4%;">Playlists</h1>
+        <!-- <h1 style="color: white; margin-top: 4%;">Playlists</h1>
           <div style="display: flex; flex-wrap: wrap; justify-content: space-evenly;">
           <div class="glass" v-for="(list) in playlists" :key="list.playlistId" style="width: 30%; min-height: 8vh; border: 1px solid transparent; display: block; margin-top: 2vh; border-radius: 7px; overflow: hidden; justify-content: left; align-items: center; cursor: pointer;">
             <img loading="lazy" :src="list?.thumbnails[2]?.url" style="width: 100%; aspect-ratio: 1/1;" alt="">
@@ -30,7 +30,7 @@
               <p style="font-size: x-small; color: #ffffff97; text-align: left; text-transform: capitalize;">{{ list.type?.toUpperCase() + ' • ' + list.artist?.name?.toLowerCase() }}</p>
             </div>
           </div>
-        </div>
+        </div> -->
 
       </div>
     </div>
@@ -128,8 +128,6 @@ export default {
     overflow-y: scroll;
     padding: 1%;
     height: 100%;
-    mask-image: linear-gradient(to bottom, rgba(0, 0, 0, 0) 0%, rgba(0, 0, 0, 1) 15%);
-    -webkit-mask-image: linear-gradient(to bottom, rgba(0, 0, 0, 0) 0%, rgba(0, 0, 0, 1) 15%);
   }
   h1{
     text-align: left;
