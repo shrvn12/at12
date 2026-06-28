@@ -1,7 +1,7 @@
 <template>
     <div id="cont">
         <div v-show="showVideo && this.$route.name == 'nowPlaying'">
-            <div id="player" style="height: 40vh; border: 0px solid white;"></div>
+            <div id="player" style="height: 40vh; aspect-ratio: (9/16); border: 0px solid white;"></div>
         </div>
         <div style="border: 0px solid green; width: 100%; height: min-content; margin-top: -5px;">
             <div style=" z-index: 1;cursor: pointer; border: 0px solid white; position: absolute; width: 100%; margin-top: -1%; height: min-content; display: flex; justify-content: space-between; align-items: center;" @click="() => { $router.push(`/playing/${queue[isPlayingIndex].id}`) }">
