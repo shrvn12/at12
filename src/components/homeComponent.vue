@@ -102,13 +102,13 @@
             <v-icon
                 v-if="showArrowsGlobal"
                 class="arrow left"
-                @click="scrollLeft('scroller')"
+                @click="scrollLeft('scrollerG')"
             >
                 mdi-chevron-left
             </v-icon>
 
             <!-- Scroll Container -->
-            <div ref="scroller" class="scroll-container">
+            <div ref="scrollerG" class="scroll-container">
                 <div
                 v-for="(item, index) in globalPlaylist?.items?.items"
                 :key="item?.id"
@@ -136,7 +136,7 @@
             <v-icon
                 v-if="showArrowsGlobal"
                 class="arrow right"
-                @click="scrollRight('scroller')"
+                @click="scrollRight('scrollerG')"
             >
                 mdi-chevron-right
             </v-icon>
