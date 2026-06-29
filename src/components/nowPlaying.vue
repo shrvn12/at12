@@ -7,14 +7,14 @@
         <div class="imgcont" style="border: 0px solid white;">
             <div v-if="!showVideo" style="position: absolute; overflow: hidden; height: 60%; aspect-ratio: 1/1; left: 0; border: 0px solid white;">
               <transition name="fade" mode="out-in">
-                <v-skeleton-loader v-if="isLoading || !info?.thumbnails?.standard?.url || !info.stats" color="#80808027" type="card"></v-skeleton-loader>
+                <v-skeleton-loader class="custom-speed" v-if="isLoading || !info?.thumbnails?.standard?.url || !info.stats" color="#80808027" type="card"></v-skeleton-loader>
                 <img v-else class="thumbnail" :src="info?.thumbnails?.standard?.url" alt="">
               </transition>
             </div>
         </div>
         <div class="infocont">
           <transition name="fade" mode="out-in">
-              <v-skeleton-loader  v-if="isLoading || !info?.stats" style="width: 100%" color="#80808027" type="article"></v-skeleton-loader>
+              <v-skeleton-loader class="custom-speed"  v-if="isLoading || !info?.stats" style="width: 100%" color="#80808027" type="article"></v-skeleton-loader>
               <div v-else class="info">
                   <p v-if="info.title" style="width: 95%; font-weight: bold; color: #ffffff;">{{ info?.title}}</p>
                   <!-- <transition name="fade" mode="out-in"> -->

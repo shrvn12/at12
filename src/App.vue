@@ -11,8 +11,14 @@
       <div class="centerTopCont">
         <div
           style="border: 0px solid green; height: 9vh; display: flex; align-items: center; justify-content: space-between; z-index: 1; width: 95%; margin: auto;">
-          <h1 @click="this.$router.push({ path: '/' })" class="header">@12</h1>
-          <div style="height: 100%; width: 30%; display: flex; align-items: center; justify-content: right;">
+          <h1 style="border: 0px solid green; max-width: 15%;" @click="this.$router.push({ path: '/' })" class="header">@12</h1>
+          <div style="border: 0px solid green; width: 65%; height: 70%; display: flex; align-items: flex-start;">
+            <v-text-field v-model="songQuery" name="searchComponent" class="input" ref="autocomplete" :loading="isLoading"
+              color="#fc2c55" variant="outlined" clearable :placeholder="placeholder()" theme="dark"
+              bg-color="#000000d" spellcheck="false" density="comfortable" autocomplete="off" persistent-clear
+              @keydown.enter="executeSearch"></v-text-field>
+          </div>
+          <div style="height: 100%; width: 15%; display: flex; flex-direction: column; align-items: center; justify-content: space-evenly; border: 0px solid green;">
             <div style="display: flex;">
               <p style="color: white; font-size: small; font-weight: bold;">{{ days[new Date().getDay()] }}</p>
               <p style="font-weight: bold; font-size: small; margin: 0 0.5vw; color: #fc2c55;">|</p>
@@ -22,17 +28,12 @@
             </div>
             <router-link v-if="userStore.user.name" style="text-decoration: none; color: white; font-size: small;"
               to="/account">
-              <img :src="`https://ui-avatars.com/api/?name=${userStore.user.name}`" alt="" style="width: 52%; border-radius: 50px;">
+              <p>{{ userStore?.user?.name }}</p>
+              <!-- <img :src="`https://ui-avatars.com/api/?name=${userStore.user.name}`" alt="" style="width: 52%; border-radius: 50px;"> -->
             </router-link>
             <router-link v-else style="text-decoration: none; color: white; font-size: small;"
-              to="/signup"><p style="margin-left: 1vw;">Login/Signup</p></router-link>
+              to="/signup"><p style="margin-left: 0vw;">Login/Signup</p></router-link>
           </div>
-        </div>
-        <div style="border: 0px solid green; height: 8vh;">
-          <v-text-field v-model="songQuery" name="searchComponent" class="input" ref="autocomplete" :loading="isLoading"
-            color="#fc2c55" variant="outlined" clearable placeholder="What do you want to play?" theme="dark"
-            bg-color="#000000d" spellcheck="false" autocomplete="off" persistent-clear
-            @keydown.enter="executeSearch"></v-text-field>
         </div>
       </div>
       <div :class="queue.length !== 0 ? 'withplayer' : 'withoutplayer'" style="width: 100%; border: 0px solid green;">
@@ -138,6 +139,13 @@ export default {
         return `Good evening ${this.userStore.user.name.split(" ")[0]}`;
       }
     },
+    placeholder(){
+      if(this.userStore?.user?.name){
+        return `What do you want to play ${this.userStore.user.name.split(" ")[0].toLowerCase()}?`;
+      } else {
+        return 'What do you want to play?';
+      }
+    }
   },
   watch: {
     songQuery(val) {
@@ -220,10 +228,9 @@ body {
 }
 
 .input {
-  margin: auto;
   color: white;
   width: 100%;
-  z-index: 100;
+  border: 0px solid yellow;
 }
 
 .centerTopCont>div:nth-child(2) {
@@ -276,10 +283,12 @@ body {
 
 .centerTopCont {
   border: 0px solid green;
-  height: 20vh;
+  height: 12vh;
   width: 100%;
   overflow: hidden;
   position: relative;
+  display: flex;
+  align-items: center;
 }
 
 @keyframes textAnimate {
@@ -298,13 +307,13 @@ body {
 }
 
 .withplayer {
-  height: 68vh;
+  height: 76vh;
   mask-image: linear-gradient(to top, rgba(0, 0, 0, 0) 0%, rgba(0, 0, 0, 1) 20%);
   -webkit-mask-image: linear-gradient(to top, rgba(0, 0, 0, 0) 0%, rgba(0, 0, 0, 1) 20%);
 }
 
 .withoutplayer {
-  height: 80vh;
+  height: 88vh;
 }
 
 .imgFade-enter-active,
@@ -433,17 +442,12 @@ body {
 }
 
 .header {
-  font-size: 3rem;
-  font-weight: 100;
+  font-size: 2.3rem;
+  font-weight: 70;
   letter-spacing: 2px;
   font-weight: 700;
   text-align: center;
-  /* color: #f35626; */
   color: #fff;
-  /* background-image: -webkit-linear-gradient(92deg, #f35626, #feab3a); */
-  /* -webkit-background-clip: text; */
-  /* -webkit-text-fill-color: transparent; */
-  /* -webkit-animation: hue 10s infinite linear; */
   cursor: pointer;
   user-select: none;
   -webkit-user-select: none;
@@ -554,6 +558,10 @@ body {
   left: 11px;
   box-sizing: border-box;
   animation: animloader 1s ease infinite;
+}
+
+.custom-speed :deep(.v-skeleton-loader__bone::after) {
+  animation-duration: 7s !important; /* Default is usually 1.5s to 2s */
 }
 
 @keyframes animloader {

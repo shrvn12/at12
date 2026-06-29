@@ -112,6 +112,8 @@ export default {
   color: white;
   overflow-y: auto;
   scrollbar-width: none;
+  display: grid;
+  grid-template-rows: auto 1fr;
 }
 
 .login_heading {
@@ -126,6 +128,7 @@ export default {
 .login-container {
   display: flex;
   justify-content: center;
+  align-items: center;
   /* align-items: center; */
   /* flex: 1; */
 }

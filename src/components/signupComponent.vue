@@ -131,6 +131,8 @@ export default {
   color: white;
   overflow-y: auto;
   scrollbar-width: none;
+  display: grid;
+  grid-template-rows: auto 1fr;
 }
 
 .signup_heading {

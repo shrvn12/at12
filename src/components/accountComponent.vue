@@ -3,19 +3,20 @@
         <div class="heading">
             <v-icon color="#ffffff" style="cursor: pointer;" @click="goBack()">mdi-arrow-left</v-icon>
         </div>
-
-        <div class="profile">
-            <img :src="`https://ui-avatars.com/api/?name=${userStore.user.name}`" alt="User Avatar"
-                class="avatar" />
-            <h2>{{ userStore.user.name }}</h2>
-            <p>{{ userStore.user.email }}</p>
-        </div>
-
-        <div class="settings">
-            <h3>Settings</h3>
-            <hr />
-            <!-- <div class="setting-item" @click="changePassword">Change Password</div> -->
-            <div class="setting-item" @click="dialog = true">Sign Out</div>
+        <div>
+            <div class="profile">
+                <img :src="`https://ui-avatars.com/api/?name=${userStore.user.name}`" alt="User Avatar"
+                    class="avatar" />
+                <h2>{{ userStore.user.name }}</h2>
+                <p>{{ userStore.user.email }}</p>
+            </div>
+    
+            <div class="settings">
+                <h3>Settings</h3>
+                <hr />
+                <!-- <div class="setting-item" @click="changePassword">Change Password</div> -->
+                <div class="setting-item" @click="dialog = true">Sign Out</div>
+            </div>
         </div>
     </div>
 
@@ -114,11 +115,20 @@ export default {
 
 <style scoped>
 .account-page {
-    width: 100%;
     height: 100%;
+    display: grid;
+    grid-template-rows: auto 1fr;
     color: #fff;
+}
+
+.heading {
+    padding: 20px;
+}
+
+.account-page > div:nth-child(2) {
     display: flex;
     flex-direction: column;
+    justify-content: center;
     align-items: center;
 }
 

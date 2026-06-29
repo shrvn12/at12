@@ -3,8 +3,8 @@
       <div style="width: 100%; display: flex;">
           <v-icon style="cursor: pointer;" color="#ffffff" @click="goBack()">mdi-arrow-left</v-icon>
       </div>
-      <div v-if="loading" style="display: flex; justify-content: center; align-items: center; min-height: 52vh; margin-top: 2vh;" >
-        <v-skeleton-loader color="#9a9a9a25" type="table-heading, article, article" width="100%" height="100%"></v-skeleton-loader>
+      <div v-if="loading" style="display: flex; justify-content: center; align-items: center; min-height: 52vh; margin-top: 1vh; height: 90%;" >
+        <v-skeleton-loader class="custom-speed" color="#9a9a9a25" type="table-heading, article, article" width="100%" height="100%"></v-skeleton-loader>
     </div>
       <div v-else>
         <h1 style="color: white;">{{ tagline[genre] }}</h1>
@@ -138,5 +138,8 @@ export default {
   }
   .white{
     color: white;
+  }
+  .custom-speed :deep(.v-skeleton-loader__bone::after) {
+    animation-duration: 5s !important; /* Default is usually 1.5s to 2s */
   }
 </style>

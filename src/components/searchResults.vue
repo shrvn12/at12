@@ -163,7 +163,7 @@
                 </div>
             </div>
             <div v-else>
-                <v-skeleton-loader v-for="n in 5" :key="n" type="list-item-avatar" color="#80808027" style="margin-top: 1.5%;"></v-skeleton-loader>
+                <v-skeleton-loader class="custom-speed" v-for="n in 15" :key="n" type="list-item-avatar" color="#80808027" style="margin-top: 1.5%;"></v-skeleton-loader>
             </div>       
         </transition>
     </div>
@@ -338,6 +338,10 @@ export default {
     overflow: hidden;
     position: relative;
     border-radius: 5px;
+}
+
+.custom-speed :deep(.v-skeleton-loader__bone::after) {
+  animation-duration: 5s !important; /* Default is usually 1.5s to 2s */
 }
 
 .thumbnail{

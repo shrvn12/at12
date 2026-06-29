@@ -3,7 +3,10 @@
         <div style="width: 100%; display: flex;">
             <v-icon style="cursor: pointer;" color="#ffffff" @click="goBack()">mdi-arrow-left</v-icon>
         </div>
-        <div style="border: 0px solid green; display: flex;">
+        <div v-if="!Object.keys(metaData).length" style="display: flex; justify-content: center; align-items: center; min-height: 52vh; margin-top: 1vh; height: 100%;" >
+            <v-skeleton-loader class="custom-speed" color="#9a9a9a25" type="table-heading, article, article" width="100%" height="100%"></v-skeleton-loader>
+        </div>
+        <div v-else style="border: 0px solid green; display: flex;">
             <div class="faded" style="width: 50%;">
             <img style="width: 100%; display: block;" :src="metaData?.snippet?.thumbnails && metaData?.snippet?.thumbnails.standard?.url" alt="">
             </div>

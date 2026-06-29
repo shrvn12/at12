@@ -1,118 +1,120 @@
 <template>
-    <div v-if="!info.name" style="display: flex; justify-content: center; align-items: center; min-height: 52vh; margin-top: 2vh;" >
-        <v-skeleton-loader color="#9a9a9a25" type="table-heading, article, article" width="100%" height="100%"></v-skeleton-loader>
+  <div class="cont">
+    <div style="width: 100%; display: flex;">
+        <v-icon style="cursor: pointer;" color="#ffffff" @click="goBack()">mdi-arrow-left</v-icon>
     </div>
-    <div v-else class="cont">
-      <div style="width: 100%; display: flex;">
-          <v-icon style="cursor: pointer;" color="#ffffff" @click="goBack()">mdi-arrow-left</v-icon>
+      <div v-if="!info.name" style="display: flex; justify-content: center; align-items: center; min-height: 52vh; margin-top: 1vh; height: 100%;" >
+          <v-skeleton-loader color="#9a9a9a25" type="table-heading, article, article" width="100%" height="100%"></v-skeleton-loader>
       </div>
-      <div style="border: 0px solid green; display: flex;">
-        <div class="faded" style="width: 50%; overflow: hidden; position: relative;">
-          <img
-            :src="(info?.thumbnails[0]?.url) || (info?.additionalInfo?.thumbnails[0]?.url) || (info.channelInfo?.snippet?.thumbnails && info.channelInfo?.snippet?.thumbnails.high.url)"
-            alt=""
-            style="width: 100%; aspect-ratio: 1/1; object-fit: cover; display: block;"
-            @error="e => e.target.src = `https://ui-avatars.com/api/?name=${encodeURIComponent(info?.name)}&background=random`"
-          />
-        </div>
-
-        <div style="width: 50%; margin-left: 5%;">
-          <p style=" text-align: left; border: 0px solid white; font-size: 250%; font-weight: bold; color: white;">{{ info.name }}</p>
-          <p v-if="info?.additionalInfo?.followers?.followersText" style=" text-align: left; border: 1px solid #fc2c55; font-size: 100%; font-weight: 300; color: white; width: fit-content; padding: 1% 3%; border-radius: 20px; margin-bottom: 2%;">
-            <v-icon color="#fff">mdi-account</v-icon>
-          {{ info?.additionalInfo?.followers?.followersText}}</p>
-          <p style=" text-align: left; border: 0px solid white; font-size: 100%; font-weight: 300; color: white;">
-            <v-icon color="#fff">mdi-youtube</v-icon>
-            {{ Number(info?.channelInfo?.statistics?.subscriberCount).toLocaleString() }} subscribers</p>
-          <p style=" text-align: left; border: 0px solid white; font-size: 100%; font-weight: 300; color: white;">
-            <v-icon color="#fff">mdi-chart-bar</v-icon>
-            {{ Number(info?.channelInfo?.statistics?.viewCount).toLocaleString() }} views</p>
-          <template v-if="info?.additionalInfo?.description || info.channelInfo.snippet.description">
-            <p v-if="showFullDesc" style="color: white; font-size: small; text-align: left; margin-top: 3%;">
-              {{ description() }}
-            </p>
-            <p v-else style="color: white; font-size: small; text-align: left; margin-top: 3%;">
-              {{ description().substring(0, 200) }}...
-            </p>
-            <p
-              v-if="description().length > 200"
-              style="color: #fc2c55; cursor: pointer; text-align: left; width: min-content; font-size: small;"
-              @click="showFullDesc = !showFullDesc"
-            >
-              {{ showFullDesc ? 'Less' : 'More' }}
-            </p>
-          </template>
-          
-        </div>
-      </div>
-      <div style="border: 0px solid white;">
-        <div>
-          <div>
-            <p style="text-align: left; color: white; font-weight: bold; font-size: larger; margin-top: 2%;">Top Songs</p>
+      <div v-else>
+        <div style="border: 0px solid green; display: flex; margin-top: 1vh;">
+          <div class="faded" style="width: 50%; overflow: hidden; position: relative;">
+            <img
+              :src="(info?.thumbnails[0]?.url) || (info?.additionalInfo?.thumbnails[0]?.url) || (info.channelInfo?.snippet?.thumbnails && info.channelInfo?.snippet?.thumbnails.high.url)"
+              alt=""
+              style="width: 100%; aspect-ratio: 1/1; object-fit: cover; display: block;"
+              @error="e => e.target.src = `https://ui-avatars.com/api/?name=${encodeURIComponent(info?.name)}&background=random`"
+            />
           </div>
+  
+          <div style="width: 50%; margin-left: 5%;">
+            <p style=" text-align: left; border: 0px solid white; font-size: 250%; font-weight: bold; color: white;">{{ info.name }}</p>
+            <p v-if="info?.additionalInfo?.followers?.followersText" style=" text-align: left; border: 1px solid #fc2c55; font-size: 100%; font-weight: 300; color: white; width: fit-content; padding: 1% 3%; border-radius: 20px; margin-bottom: 2%;">
+              <v-icon color="#fff">mdi-account</v-icon>
+            {{ info?.additionalInfo?.followers?.followersText}}</p>
+            <p style=" text-align: left; border: 0px solid white; font-size: 100%; font-weight: 300; color: white;">
+              <v-icon color="#fff">mdi-youtube</v-icon>
+              {{ Number(info?.channelInfo?.statistics?.subscriberCount).toLocaleString() }} subscribers</p>
+            <p style=" text-align: left; border: 0px solid white; font-size: 100%; font-weight: 300; color: white;">
+              <v-icon color="#fff">mdi-chart-bar</v-icon>
+              {{ Number(info?.channelInfo?.statistics?.viewCount).toLocaleString() }} views</p>
+            <template v-if="info?.additionalInfo?.description || info.channelInfo.snippet.description">
+              <p v-if="showFullDesc" style="color: white; font-size: small; text-align: left; margin-top: 3%;">
+                {{ description() }}
+              </p>
+              <p v-else style="color: white; font-size: small; text-align: left; margin-top: 3%;">
+                {{ description().substring(0, 200) }}...
+              </p>
+              <p
+                v-if="description().length > 200"
+                style="color: #fc2c55; cursor: pointer; text-align: left; width: min-content; font-size: small;"
+                @click="showFullDesc = !showFullDesc"
+              >
+                {{ showFullDesc ? 'Less' : 'More' }}
+              </p>
+            </template>
+            
+          </div>
+        </div>
+        <div style="border: 0px solid white;">
           <div>
-            <div class="listItem" v-for="(track, index) in info.topSongs" :key="index" style="display: flex; align-items: center; border: 0px solid white; width: 100%; cursor: pointer;" @click="play(track)">
-              <p style="color: white; font-weight: bold; margin-left: 1%;">{{ index+1 }}.</p>
-                <div class="thumb_cont" style="border: 0px solid white;">
-                    <div class="img-cont">
-                        <img class="thumbnail" :src="track.thumbnails && track.thumbnails[0].url" alt="">
-                    </div>
-                </div>
-                <div class="info" style="width: 70%; border: 0px solid pink; display: flex; align-items: center;">
-                    <div style="text-align: left; max-width: 100%;">
-                        <p :class="this.queueStore.queue[this.queueStore.isPlayingIndex]?.id == track.videoId ? 'highlight' : 'info'" style="white-space: nowrap; overflow: hidden; text-overflow: ellipsis; width: 100%;">{{track.name}}</p>
-                        <p style="color: grey; font-size: small;">{{ track.album.name }}</p>
-                    </div>
-                </div>
-                <div style="display: flex; align-items: center; justify-content: right; width: 15%;">
-                    <MusicBar v-if="this.queueStore.queue[this.queueStore.isPlayingIndex]?.id == track.videoId && !this.queueStore.isLoading"></MusicBar>
-                    <v-menu>
-                        <template v-slot:activator="{ props }">
-                            <v-btn
-                                v-bind="props"
-                                color="white"
-                                icon="mdi-dots-vertical"
-                                variant="text"
-                            ></v-btn>
-                        </template>
-                        <v-list theme="dark">
-                            <v-list-item
-                            v-for="(item, index) in ['Add to queue', 'Play next']"
-                            size="small"
-                            :key="index"
-                            :value="index"
-                            theme="dark"
-                            >
-                            <v-list-item-title @click="menuFunction(item, track)">{{ item }}</v-list-item-title>
-                            </v-list-item>
-                        </v-list>
-                    </v-menu>
-
-                </div>
+            <div>
+              <p style="text-align: left; color: white; font-weight: bold; font-size: larger; margin-top: 2%;">Top Songs</p>
+            </div>
+            <div>
+              <div class="listItem" v-for="(track, index) in info.topSongs" :key="index" style="display: flex; align-items: center; border: 0px solid white; width: 100%; cursor: pointer;" @click="play(track)">
+                <p style="color: white; font-weight: bold; margin-left: 1%;">{{ index+1 }}.</p>
+                  <div class="thumb_cont" style="border: 0px solid white;">
+                      <div class="img-cont">
+                          <img class="thumbnail" :src="track.thumbnails && track.thumbnails[0].url" alt="">
+                      </div>
+                  </div>
+                  <div class="info" style="width: 70%; border: 0px solid pink; display: flex; align-items: center;">
+                      <div style="text-align: left; max-width: 100%;">
+                          <p :class="this.queueStore.queue[this.queueStore.isPlayingIndex]?.id == track.videoId ? 'highlight' : 'info'" style="white-space: nowrap; overflow: hidden; text-overflow: ellipsis; width: 100%;">{{track.name}}</p>
+                          <p style="color: grey; font-size: small;">{{ track.album.name }}</p>
+                      </div>
+                  </div>
+                  <div style="display: flex; align-items: center; justify-content: right; width: 15%;">
+                      <MusicBar v-if="this.queueStore.queue[this.queueStore.isPlayingIndex]?.id == track.videoId && !this.queueStore.isLoading"></MusicBar>
+                      <v-menu>
+                          <template v-slot:activator="{ props }">
+                              <v-btn
+                                  v-bind="props"
+                                  color="white"
+                                  icon="mdi-dots-vertical"
+                                  variant="text"
+                              ></v-btn>
+                          </template>
+                          <v-list theme="dark">
+                              <v-list-item
+                              v-for="(item, index) in ['Add to queue', 'Play next']"
+                              size="small"
+                              :key="index"
+                              :value="index"
+                              theme="dark"
+                              >
+                              <v-list-item-title @click="menuFunction(item, track)">{{ item }}</v-list-item-title>
+                              </v-list-item>
+                          </v-list>
+                      </v-menu>
+  
+                  </div>
+              </div>
             </div>
           </div>
-        </div>
-
-        <div>
+  
           <div>
-            <p style="text-align: left; color: white; font-weight: bold; font-size: larger; margin-top: 2%;">Featured on</p>
-          </div>
-          <div style="overflow-x: auto; overflow-y: hidden; scrollbar-width: none; width: 100%; display: flex; border: 0px solid white; gap: 10px; padding: 10px;">
-            <div
-              v-for="(track, index) in playlist"
-              :key="index"
-              style="flex: 0 0 auto; width: 10vw; aspect-ratio: 1 / 1;"
-              @click="$router.push({name: 'playlist', params: {playlistId: track.playlistId}})"
-            >
-              <div style="position: relative; width: 100%; aspect-ratio: 1/1; overflow: hidden; border-radius: 15px; cursor: pointer;">
-                <img
-                  class="thumbnail"
-                  :src="track.thumbnails && track.thumbnails[0].url"
-                  alt=""
-                  style="width: 100%; height: 100%; object-fit: cover;"
-                >
+            <div>
+              <p style="text-align: left; color: white; font-weight: bold; font-size: larger; margin-top: 2%;">Featured on</p>
+            </div>
+            <div style="overflow-x: auto; overflow-y: hidden; scrollbar-width: none; width: 100%; display: flex; border: 0px solid white; gap: 10px; padding: 10px;">
+              <div
+                v-for="(track, index) in playlist"
+                :key="index"
+                style="flex: 0 0 auto; width: 10vw; aspect-ratio: 1 / 1;"
+                @click="$router.push({name: 'playlist', params: {playlistId: track.playlistId}})"
+              >
+                <div style="position: relative; width: 100%; aspect-ratio: 1/1; overflow: hidden; border-radius: 15px; cursor: pointer;">
+                  <img
+                    class="thumbnail"
+                    :src="track.thumbnails && track.thumbnails[0].url"
+                    alt=""
+                    style="width: 100%; height: 100%; object-fit: cover;"
+                  >
+                </div>
+                <p class="ellipse" style="color: white; font-size: small; max-width: 10vw;">{{ (track.name).split("|")[0] }}</p>
               </div>
-              <p class="ellipse" style="color: white; font-size: small; max-width: 10vw;">{{ (track.name).split("|")[0] }}</p>
             </div>
           </div>
         </div>
@@ -249,6 +251,10 @@ export default {
 
 .faded{
   mask-image: linear-gradient(to bottom, transparent, black 20%, black 80%, transparent); -webkit-mask-image: linear-gradient(to bottom, transparent, black 20%, black 80%, transparent);
+}
+
+.custom-speed :deep(.v-skeleton-loader__bone::after) {
+  animation-duration: 5s !important; /* Default is usually 1.5s to 2s */
 }
 
 .thumb_cont{

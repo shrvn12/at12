@@ -33,7 +33,7 @@
                 </div>
             </div>
         </div>
-        <v-skeleton-loader v-else type="card" color="#9A9A9A" height="90%"></v-skeleton-loader>
+        <v-skeleton-loader class="custom-speed" v-else type="heading" color="#80808027" height="90%"></v-skeleton-loader>
         </transition>
 
         <transition name="fade" mode="out-in">
@@ -89,6 +89,61 @@
             </div>
         </div>
         </transition>
+        
+        <transition name="fade" mode="out-in">
+        <div v-if="globalPlaylist && Object.keys(globalPlaylist).length" class="playlist-section">
+            <p class="playlist-title">Top Global</p>
+            <div
+            class="scroll-wrapper"
+            @mouseenter="showArrowsGlobal = true"
+            @mouseleave="showArrowsGlobal = false"
+            >
+            <!-- Left Arrow -->
+            <v-icon
+                v-if="showArrowsGlobal"
+                class="arrow left"
+                @click="scrollLeft('scroller')"
+            >
+                mdi-chevron-left
+            </v-icon>
+
+            <!-- Scroll Container -->
+            <div ref="scroller" class="scroll-container">
+                <div
+                v-for="(item, index) in globalPlaylist?.items?.items"
+                :key="item?.id"
+                :class="{'card': true, 'saturate': cardHoverIndex == index}"
+                @mouseenter="hoveredIndex = index"
+                @mouseleave="hoveredIndex = null"
+                >
+                <img
+                    :src="item?.snippet?.thumbnails?.maxres?.url"
+                    draggable="false"
+                />
+                <div v-if="hoveredIndex == index" class="card-overlay">
+                    <div class="card-button-container">
+                        <button @click="play(item?.snippet?.resourceId?.videoId, item?.snippet?.title, item?.snippet)" class="card-play-button">
+                            <v-icon color="black" size="small">mdi-play-outline</v-icon>
+                            <p class="card-play-text">Play</p>
+                        </button>
+                    </div>
+                    <p class="card-title">{{ item?.snippet?.title }}</p>
+                </div>
+                </div>
+            </div>
+
+            <!-- Right Arrow -->
+            <v-icon
+                v-if="showArrowsGlobal"
+                class="arrow right"
+                @click="scrollRight('scroller')"
+            >
+                mdi-chevron-right
+            </v-icon>
+            </div>
+        </div>
+        </transition>
+
         <br>
         <br>
     </div>
@@ -117,9 +172,10 @@ export default {
             loadingUserInfo: false,
             hoveredIndex: null,
             homePlayList: {},
+            globalPlaylist: {},
             heroSongInfo: {},
             showArrows: false,
-            showArrowsAlbum: false,
+            showArrowsGlobal: false,
             cardHoverIndex: null,
             bollywood: [],
         }
@@ -128,6 +184,7 @@ export default {
         this.fetchPlaylist().then(() => {
             EventBus.emit('update-background-home', this.homePlayList?.metaData?.items[0]?.snippet?.thumbnails?.maxres?.url);
         });
+        this.fetchGlobalPlaylist();
     },
     methods:{
         greetUser(){
@@ -142,12 +199,22 @@ export default {
         },
         async fetchPlaylist(){
             try {
-                const res = await fetch(`${this.prodUrl}/music/playlist/PL4fGSI1pDJn5RgLW0Sb_zECecWdH_4zOX`);
+                const res = await fetch(`${this.prodUrl}/music/playlist/PL4fGSI1pDJn5oibdgJt8Hy0-dr2B7kSs2`);
                 const data = await res.json();
                 this.homePlayList = data;
                 const firstSongInfo = await fetch(`${this.prodUrl}/music/info?id=${data.items.items[0].snippet.resourceId.videoId}`);
                 const firstSongData = await firstSongInfo.json();
                 this.heroSongInfo = firstSongData;
+            } catch (error) {
+                console.error(error);
+                this.toast.error('Error fetching playlist');
+            }
+        },
+        async fetchGlobalPlaylist(){
+            try {
+                const res = await fetch(`${this.prodUrl}/music/playlist/PL4fGSI1pDJn6t3TXLGiiJdD-sZbrG3tG0`);
+                const data = await res.json();
+                this.globalPlaylist = data;
             } catch (error) {
                 console.error(error);
                 this.toast.error('Error fetching playlist');
@@ -462,6 +529,10 @@ export default {
 
 .fade-enter-to, .fade-leave-from {
     opacity: 1;
+}
+
+.custom-speed :deep(.v-skeleton-loader__bone::after) {
+  animation-duration: 5s !important; /* Default is usually 1.5s to 2s */
 }
 
 /* Tablet (768px and below) */

@@ -18,9 +18,13 @@
             <p onmouseover="this.style.textDecoration = 'underline'" onmouseout="this.style.textDecoration = 'none'" style="font-weight: bold; font-size: large;" @click="index != currentLyricIndex && jumpToTime(line.time)" :class="currentLyricIndex !== null && index <= currentLyricIndex? 'active' : 'inactive'">{{ line.text || '♪♪' }}</p>
         </v-list-item>
     </v-list>
-    <div v-if="showCloseButton" class="glass" style="position: absolute; bottom: 2vh; left: 0; right: 0; margin: auto; display: flex; align-items: center; margin: auto; justify-content: center; width: 50%; height: 5vh; cursor: pointer" @click="queueStore.isLyricsVisible = false">
-      <v-icon size="small" style="margin-right: 5%; pointer-events: none;">mdi-close</v-icon>
-      <p style="font-size:small; color: #fff; pointer-events: none;">close</p>
+   <div v-if="showCloseButton" class="glass close-btn" @click="queueStore.isLyricsVisible = false">
+      <v-icon size="small" style="margin-right:5%;pointer-events:none">
+        mdi-close
+      </v-icon>
+      <p style="font-size:small;color:#fff;pointer-events:none">
+        Close
+      </p>
     </div>
     </div>
 </template>
@@ -221,6 +225,26 @@ export default {
   overflow-y: auto;
   scrollbar-width: none;
   -ms-overflow-style: none;
+}
+
+.close-btn {
+    position: fixed;
+    bottom: 2vh;
+    right: 0;
+    margin-right: 2vw;
+    width: 20%;        /* same as lyric panel */
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    height: 5vh;
+    cursor: pointer;
+    z-index: 100;
+}
+
+@media (max-width:675px) {
+    .close-btn {
+        width: 100%;
+    }
 }
 
 @media screen and (max-width: 675px) {
