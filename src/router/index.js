@@ -39,7 +39,7 @@ let userInfoFetched = false; // Flag to track if user info has been fetched
 
 router.beforeEach(async (to, from) => {
   const userStore = useUserStore();
-  console.log('Navigating from', from.name, 'to', to.name);
+  // console.log('Navigating from', from.name, 'to', to.name);
 
   // 1️⃣ Fetch user info only once
   if (!userInfoFetched) {
@@ -66,7 +66,7 @@ router.beforeEach(async (to, from) => {
     !user.emailVerified &&
     !['verifyEmail', 'login'].includes(to.name)
   ) {
-    console.log('Redirecting to verify email:', user.email);
+    // console.log('Redirecting to verify email:', user.email);
     return {
       name: 'verifyEmail',
       params: { email: user.email },

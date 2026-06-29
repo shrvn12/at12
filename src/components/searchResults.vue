@@ -239,7 +239,7 @@ export default {
                     res = await res.json();
                     this.searchRes = res.songs;
                     this.videos = res.videos;
-                    console.log(res);
+                    // console.log(res);
                     // Fetch artist details from the first song
                     if (res.songs.length && res.songs[0].artists?.length) {
                         // const artistIds = [];
@@ -248,7 +248,7 @@ export default {
                         // })
 
                         const artistIds = res.songs[0].artists.reduce((collector, item) => {collector.push(item.id); return collector}, [])
-                        console.log(artistIds);
+                        // console.log(artistIds);
                         await this.fetchArtists(artistIds);
                     }
                 })

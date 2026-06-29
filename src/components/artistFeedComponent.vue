@@ -117,7 +117,7 @@ export default {
 
   },
   mounted() {
-    console.log(process.env.VUE_APP_PROD_URL);
+    // console.log(process.env.VUE_APP_PROD_URL);
   },
 
   beforeUnmount() {

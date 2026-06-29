@@ -62,7 +62,7 @@ export default {
             }).then(async (res) => {
                 res = await res.json();
                 if (res.success) {
-                    console.log(res);
+                    // console.log(res);
                     this.userStore.user = res;
                 } else {
                     this.$router.replace({ name: 'login' });
@@ -107,7 +107,7 @@ export default {
                     this.$toast.error('Error during logout. Please try again.');
                     // alert('An error occurred. Please try again.');
                 });
-            console.log("User logged out");
+            // console.log("User logged out");
         }
     },
 };

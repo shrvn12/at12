@@ -67,7 +67,7 @@ export default {
     },
     handleLogin() {
       // Placeholder logic
-      console.log('Logging in with', this.email, this.password);
+      // console.log('Logging in with', this.email, this.password);
       this.loading = true;
       fetch(`${this.prodUrl}/auth/login`, {
         method: 'POST',
@@ -83,7 +83,7 @@ export default {
       }).then(async (res) => {
         this.loading = false;
         res = await res.json();
-        console.log(res);
+        // console.log(res);
         if(res.success){
           this.queueStore.userData = res;
           this.$router.replace('/');
